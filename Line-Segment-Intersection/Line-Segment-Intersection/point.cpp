@@ -2,12 +2,8 @@
 #include "point.h"
 
 // Constructors & Destructor
-point::point()
-	:x{ 0 }, y{ 0 }
-{}
-
 point::point(float x, float y)
-	:x{ x }, y{ y }
+	:x{ x }, y{ y }, definesLineSegment{ false }
 {}
 
 point::~point() {}
