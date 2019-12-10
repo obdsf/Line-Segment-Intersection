@@ -24,12 +24,18 @@
     <ClCompile Include="line_segment.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="euclidean_plane.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="point.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="line_segment.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="euclidean_plane.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

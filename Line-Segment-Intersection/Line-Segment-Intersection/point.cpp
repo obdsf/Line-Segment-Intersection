@@ -3,7 +3,7 @@
 
 // Constructors & Destructor
 point::point(float x, float y)
-	:x{ x }, y{ y }, definesLineSegment{ false }
+	:x{ x }, y{ y }
 {}
 
 point::~point() {}

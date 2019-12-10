@@ -1,5 +1,4 @@
 #pragma once
-//#include "line_segment.h"
 
 class point {
 public:
@@ -12,7 +11,6 @@ public:
 	// Member Variables
 	float x;
 	float y;
-	bool definesLineSegment;
 
 private:
 
