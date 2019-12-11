@@ -1,5 +1,4 @@
 #pragma once
-
 // ### # #################################################################################### # ###
 
 // STL : Standard Template Library
@@ -18,14 +17,36 @@ class euclidean_plane : private sf::NonCopyable {
 // ### # Class Member Variables # ###
 private:
   static const sf::Time timePerFrame;
+  static const int windowWidth;
+  static const int windowHeight;
+  static const int topMargin;
+  static const int bottomMargin;
+  static const int rightMargin;
+  static const int leftMargin;
+  static const float xBias;
+  static const float yBias;
+  static const float distLimit;
+  static const float distMin;
+  static const float distMax;
+  static const int fontSize;
 
   sf::RenderWindow m_window;
-  sf::VertexArray m_logicalLineA;
-  sf::VertexArray m_logicalLineB;
   line_segment m_physicalLineA;
   line_segment m_physicalLineB;
+  sf::VertexArray m_xAxis;
+  sf::VertexArray m_yAxis;
+  sf::VertexArray m_logicalLineA;
+  sf::VertexArray m_logicalLineB;
   sf::Font m_font;
   sf::Text m_statisticsText;
+  sf::Text m_lineAText;
+  sf::Text m_lineApText;
+  sf::Text m_lineAqText;
+  sf::Text m_lineAslopeText;
+  sf::Text m_lineBText;
+  sf::Text m_lineBpText;
+  sf::Text m_lineBqText;
+  sf::Text m_lineBslopeText;
   sf::Time m_statisticsUpdateTime;
   std::size_t m_statisticsNumFrames;
   bool m_genNewSetOfLines;
@@ -46,6 +67,7 @@ private:
   void handleUserInput(sf::Keyboard::Key key, bool isPressed);
   void genNewSetOfLines(line_segment &physicalLine);
   void updateLine(sf::VertexArray &logicalLine, line_segment &physicalLine);
+  void updateCoords();
   void updateStatistics(sf::Time elapsedTime);
 
   template <typename T>

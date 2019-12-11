@@ -1,5 +1,14 @@
 #pragma once
+
+// ### # #################################################################################### # ###
+
+// STL : Standard Template Library
+// Boost Library
+// SFML : Simple and Fast Multimedia Library
+// Custom Headers
 #include "point.h"
+
+// ### # #################################################################################### # ###
 
 class line_segment {
 public:

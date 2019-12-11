@@ -1,5 +1,14 @@
+
+// ### # #################################################################################### # ###
+
+// STL : Standard Template Library
 #include <iostream>
+// Boost Library
+// SFML : Simple and Fast Multimedia Library
+// Custom Headers
 #include "point.h"
+
+// ### # #################################################################################### # ###
 
 // Constructors & Destructor
 point::point(float x, float y)
@@ -16,5 +25,5 @@ void point::print() {
 
 bool point::eq(point p) {
 	if (x == p.x && y == p.y) return true;
-	else return false;
+	return false;
 }
