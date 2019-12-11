@@ -11,7 +11,7 @@
 // ### # #################################################################################### # ###
 
 // Constructors & Destructor
-point::point(float x, float y)
+point::point(int x, int y)
 	:x{ x }, y{ y }
 {}
 

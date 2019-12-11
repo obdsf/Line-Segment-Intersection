@@ -23,11 +23,10 @@ private:
   static const int bottomMargin;
   static const int rightMargin;
   static const int leftMargin;
-  static const float xBias;
-  static const float yBias;
-  static const float distLimit;
-  static const float distMin;
-  static const float distMax;
+  static const int xBias;
+  static const int yBias;
+  static const int distMin;
+  static const int distMax;
   static const int fontSize;
 
   sf::RenderWindow m_window;
@@ -50,9 +49,11 @@ private:
   sf::Time m_statisticsUpdateTime;
   std::size_t m_statisticsNumFrames;
   bool m_genNewSetOfLines;
+  bool m_reset;
+  bool m_exit;
 
   std::default_random_engine m_generator;
-  std::uniform_real_distribution<float> m_distribution;
+  std::uniform_int_distribution<int> m_distribution;
 
 // ### # Class Member Functions # ###
 public:

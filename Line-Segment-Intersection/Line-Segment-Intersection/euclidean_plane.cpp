@@ -18,10 +18,10 @@ const int euclidean_plane::topMargin{ 100 };
 const int euclidean_plane::bottomMargin{ 100 };
 const int euclidean_plane::rightMargin{ 300 };
 const int euclidean_plane::leftMargin{ 300 };
-const float euclidean_plane::xBias{ windowWidth / 2 };
-const float euclidean_plane::yBias{ windowHeight / 2 };
-const float euclidean_plane::distMin{ -300 };
-const float euclidean_plane::distMax{ 300 };
+const int euclidean_plane::xBias{ windowWidth / 2 };
+const int euclidean_plane::yBias{ windowHeight / 2 };
+const int euclidean_plane::distMin{ -300 };
+const int euclidean_plane::distMax{ 300 };
 const int euclidean_plane::fontSize{ 25 };
 
 euclidean_plane::euclidean_plane()
@@ -34,7 +34,8 @@ euclidean_plane::euclidean_plane()
   , m_lineAText{}, m_lineApText{}, m_lineAqText{}, m_lineAslopeText{}
   , m_lineBText{}, m_lineBpText{}, m_lineBqText{}, m_lineBslopeText{}
   , m_statisticsUpdateTime{}, m_statisticsNumFrames{ 0 }
-  , m_genNewSetOfLines{ false }, m_distribution{ distMin, distMax }
+  , m_genNewSetOfLines{ false }, m_reset{ true }, m_exit{ false }
+  , m_distribution{ distMin, distMax }
 {
   m_xAxis[0].position = sf::Vector2f(leftMargin, yBias);
   m_xAxis[1].position = sf::Vector2f(windowWidth - leftMargin, yBias);
@@ -130,6 +131,10 @@ void euclidean_plane::update() {
     updateLine(m_logicalLineB, m_physicalLineB);
     updateCoords();
   }
+  if (m_reset) {
+    m_distribution.reset();
+  }
+  if (m_exit) m_window.close();
   return;
 }
 
@@ -138,6 +143,7 @@ void euclidean_plane::render() {
   m_window.draw(m_xAxis);
   m_window.draw(m_yAxis);
   m_window.draw(m_statisticsText);
+  if (!m_reset) {
   m_window.draw(m_lineAText);
   m_window.draw(m_lineApText);
   m_window.draw(m_lineAqText);
@@ -148,12 +154,16 @@ void euclidean_plane::render() {
   m_window.draw(m_lineBslopeText);
   m_window.draw(m_logicalLineA);
   m_window.draw(m_logicalLineB);
+  }
   m_window.display();
   return;
 }
 
 void euclidean_plane::handleUserInput(sf::Keyboard::Key key, bool isPressed) {
+  if (m_reset) m_reset = false;
   if (key == sf::Keyboard::Space) m_genNewSetOfLines = isPressed;
+  if (key == sf::Keyboard::R) m_reset = true;
+  if (key == sf::Keyboard::Escape) m_exit = isPressed;
   return;
 }
 

@@ -12,14 +12,14 @@
 class point {
 public:
 	// Constructors & Destructor
-	point(float x = 0, float y = 0);
+	point(int x = 0, int y = 0);
 	~point();
 	// Member Functions
 	void print();
 	bool eq(point p);
 	// Member Variables
-	float x;
-	float y;
+	int x;
+	int y;
 
 private:
 
