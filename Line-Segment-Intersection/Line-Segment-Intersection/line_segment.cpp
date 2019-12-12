@@ -12,37 +12,40 @@
 // ### # #################################################################################### # ###
 
 // Constructors & Destructor
-line_segment::line_segment(point &p, point &q)
-	:p{ p }, q{ q }, slope{ calcSlope() }
+line_segment::line_segment(point& p, point& q)
+	:p{ p }, q{ q }, slope{ calcSlope() }, yIntercept{ calcYIntercept() }
 {}
 
 line_segment::line_segment(int px, int py, int qx, int qy) {
-	point pp{ px, py };
-	point qq{ qx, qy };
-	line_segment(pp, qq);
+	p.update(px, py);
+	q.update(qx, qy);
+	slope = calcSlope();
+	yIntercept = calcYIntercept();
 }
 
 line_segment::~line_segment() {}
 
 // Member Functions
 void line_segment::update(int px, int py, int qx, int qy) {
-	p.x = px;
-	p.y = py;
-	q.x = qx;
-	q.y = qy;
+	p.update(px, py);
+	q.update(qx, qy);
 	slope = calcSlope();
+	yIntercept = calcYIntercept();
 	return;
 }
 
 void line_segment::print() {
-	p.print();
-	std::cout << "<--->";
-	q.print();
-	std::cout << " || slope: " << slope;
+	std::cout
+		<< "(" << p.x << ", " << p.y << ")"
+		<< " <---> "
+		<< "(" << q.x << ", " << q.y << ")"
+		<< " || slope: " << slope
+		<< " || y-intercept: " << yIntercept
+		<< '\n';
 	return;
 }
 
-bool line_segment::eq(line_segment &l) {
+bool line_segment::eq(line_segment& l) {
 	if (p.eq(l.p) && q.eq(l.q) || q.eq(l.p) && p.eq(l.q)) return true;
 	return false;
 }
@@ -52,6 +55,21 @@ float line_segment::calcSlope() {
 	return ((float)q.y - (float)p.y) / ((float)q.x - (float)p.x);
 }
 
-float line_segment::orientation(line_segment &l) {
-	return slope-l.slope;
+float line_segment::calcYIntercept() {
+	if (slope == NULL) return NULL;
+	return (float)p.y - (float)p.x * slope;
+}
+
+bool line_segment::parallel(line_segment& l) {
+	if (slope == l.slope) return true;
+	return false;
+}
+
+bool line_segment::collinear(line_segment& l) {
+	if (parallel(l) && yIntercept == l.yIntercept) return true;
+	return false;
+}
+
+bool line_segment::contains(point k) {
+	
 }

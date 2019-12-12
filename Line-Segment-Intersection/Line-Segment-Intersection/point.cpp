@@ -18,8 +18,13 @@ point::point(int x, int y)
 point::~point() {}
 
 // Member Functions
+void point::update(int xVal, int yVal) {
+	x = xVal;
+	y = yVal;
+}
+
 void point::print() {
-	std::cout << "(" << x << ", " << y << ")";
+	std::cout << "(" << x << ", " << y << ")\n";
 	return;
 }
 

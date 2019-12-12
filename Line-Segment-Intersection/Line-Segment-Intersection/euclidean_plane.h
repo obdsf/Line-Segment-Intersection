@@ -42,10 +42,12 @@ private:
   sf::Text m_lineApText;
   sf::Text m_lineAqText;
   sf::Text m_lineAslopeText;
+  sf::Text m_lineAyInterceptText;
   sf::Text m_lineBText;
   sf::Text m_lineBpText;
   sf::Text m_lineBqText;
   sf::Text m_lineBslopeText;
+  sf::Text m_lineByInterceptText;
   sf::Time m_statisticsUpdateTime;
   std::size_t m_statisticsNumFrames;
   bool m_genNewSetOfLines;
@@ -58,7 +60,9 @@ private:
 // ### # Class Member Functions # ###
 public:
   euclidean_plane(); // Class Constructor
-  void run(); // Window Main Loop
+  void launch(); // Window Main Loop
+
+  float threePointOrientation(point a, point b, point c);
 
 private:
   void processEvents();
@@ -66,9 +70,9 @@ private:
   void render();
 
   void handleUserInput(sf::Keyboard::Key key, bool isPressed);
-  void genNewSetOfLines(line_segment &physicalLine);
-  void updateLine(sf::VertexArray &logicalLine, line_segment &physicalLine);
-  void updateCoords();
+  void genNewSetOfLines(line_segment& physicalLine);
+  void updateLine(sf::VertexArray& logicalLine, line_segment& physicalLine);
+  void updateLinesInfo();
   void updateStatistics(sf::Time elapsedTime);
 
   template <typename T>

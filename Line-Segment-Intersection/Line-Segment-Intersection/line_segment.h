@@ -19,14 +19,18 @@ public:
 	// Member Functions
 	void update(int px, int py, int qx, int qy);
 	void print();
-	bool eq(line_segment &l);
-	float orientation(line_segment &l);
+	bool eq(line_segment& l);
+	bool parallel(line_segment& l);
+	bool collinear(line_segment& l);
+	bool contains(point k);
 	// Member Variables
 	point p;
 	point q;
 	float slope;
+	float yIntercept;
 
 private:
 	// Member Functions
 	float calcSlope();
+	float calcYIntercept();
 };

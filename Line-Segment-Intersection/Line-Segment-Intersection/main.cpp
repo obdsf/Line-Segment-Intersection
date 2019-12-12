@@ -10,8 +10,8 @@
 // ### # #################################################################################### # ###
 
 int main() {
-	euclidean_plane ECLNPlane;
-	ECLNPlane.run();
+	euclidean_plane euclideanPlane;
+	euclideanPlane.launch();
 
 	return 0;
 }
