@@ -171,6 +171,9 @@ void euclidean_plane::handleUserInput(sf::Keyboard::Key key, bool isPressed) {
   if (key == sf::Keyboard::Space) m_genNewSetOfLines = isPressed;
   if (key == sf::Keyboard::R) m_reset = true;
   if (key == sf::Keyboard::Escape) m_exit = isPressed;
+
+  std::cout << m_physicalLineA.intersects(m_physicalLineB) << '\n';
+
   return;
 }
 

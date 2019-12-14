@@ -14,13 +14,42 @@
 // Constructors & Destructor
 line_segment::line_segment(point& p, point& q)
 	:p{ p }, q{ q }, slope{ calcSlope() }, yIntercept{ calcYIntercept() }
-{}
+{
+	if (p.x > q.x) {
+		xMax = p.x;
+		xMin = q.x;
+	} else {
+		xMax = q.x;
+		xMin = p.x;
+	}
+	if (p.y > q.y) {
+		yMax = p.y;
+		yMin = q.y;
+	} else {
+		yMax = q.y;
+		yMin = p.y;
+	}
+}
 
 line_segment::line_segment(int px, int py, int qx, int qy) {
 	p.update(px, py);
 	q.update(qx, qy);
 	slope = calcSlope();
 	yIntercept = calcYIntercept();
+	if (px > qx) {
+		xMax = px;
+		xMin = qx;
+	} else {
+		xMax = qx;
+		xMin = px;
+	}
+	if (py > qy) {
+		yMax = py;
+		yMin = qy;
+	} else {
+		yMax = qy;
+		yMin = py;
+	}
 }
 
 line_segment::~line_segment() {}
@@ -31,6 +60,20 @@ void line_segment::update(int px, int py, int qx, int qy) {
 	q.update(qx, qy);
 	slope = calcSlope();
 	yIntercept = calcYIntercept();
+	if (p.x > q.x) {
+		xMax = p.x;
+		xMin = q.x;
+	} else {
+		xMax = q.x;
+		xMin = p.x;
+	}
+	if (p.y > q.y) {
+		yMax = p.y;
+		yMin = q.y;
+	} else {
+		yMax = q.y;
+		yMin = p.y;
+	}
 	return;
 }
 
@@ -70,6 +113,27 @@ bool line_segment::collinear(line_segment& l) {
 	return false;
 }
 
-bool line_segment::contains(point k) {
-	
+bool line_segment::partially_contains(point& k) {
+	if (k.x <= xMax && k.x >= xMin && k.y <= yMax && k.y >= yMin) return true;
+	return false;
+}
+
+bool line_segment::contains(point& k) {
+	if(partially_contains(k) && k.y == slope * k.x + yIntercept) return true;
+	return false;
+}
+
+bool line_segment::partially_intersects(line_segment& l, point& k) {
+	if (parallel(l)) return false;
+	int x = l.yIntercept - yIntercept / slope - l.slope;
+	int y = x * slope + yIntercept;
+	k.update(x, y);
+	return true;
+}
+
+bool line_segment::intersects(line_segment& l, point& k) {
+	if (partially_intersects(l, k)) {
+		if (contains(k) && l.contains(k)) return true;
+	}
+	return false;
 }

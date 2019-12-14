@@ -22,12 +22,19 @@ public:
 	bool eq(line_segment& l);
 	bool parallel(line_segment& l);
 	bool collinear(line_segment& l);
-	bool contains(point k);
+	bool partially_contains(point& k);
+	bool contains(point& k);
+	bool partially_intersects(line_segment& l, point& k);
+	bool intersects(line_segment& l, point& k);
 	// Member Variables
 	point p;
 	point q;
 	float slope;
 	float yIntercept;
+	int xMin;
+	int xMax;
+	int yMin;
+	int yMax;
 
 private:
 	// Member Functions
