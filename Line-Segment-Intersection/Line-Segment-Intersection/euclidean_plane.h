@@ -54,6 +54,7 @@ private:
   sf::Text m_lineBqText;
   sf::Text m_lineBslopeText;
   sf::Text m_lineByInterceptText;
+  sf::Text m_intersectionPointText;
   sf::Time m_statisticsUpdateTime;
   std::size_t m_statisticsNumFrames;
 
@@ -84,6 +85,7 @@ private:
   void updateLine(sf::VertexArray& logicalLine, line_segment& physicalLine);
   void updatePoint(sf::CircleShape& intersectionPoint, point& k);
   void updateLinesInfo();
+  void updateIntersectionPointInfo();
   void updateStatistics(sf::Time elapsedTime);
 
   float orientation(point a, point b, point c);

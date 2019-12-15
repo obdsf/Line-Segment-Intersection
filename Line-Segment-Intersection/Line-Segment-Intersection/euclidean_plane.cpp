@@ -35,6 +35,7 @@ euclidean_plane::euclidean_plane()
   , m_font{}, m_statisticsText{}
   , m_lineAText{}, m_lineApText{}, m_lineAqText{}, m_lineAslopeText{}
   , m_lineBText{}, m_lineBpText{}, m_lineBqText{}, m_lineBslopeText{}
+  , m_intersectionPointText{}
   , m_statisticsUpdateTime{}, m_statisticsNumFrames{ 0 }
   , m_genNewSetOfLines{ false }, m_reset{ true }, m_exit{ false }
   , m_calcIntersections{ false }, m_drawIntersections{ false }
@@ -69,6 +70,7 @@ euclidean_plane::euclidean_plane()
   m_lineBqText.setFont(m_font);
   m_lineBslopeText.setFont(m_font);
   m_lineByInterceptText.setFont(m_font);
+  m_intersectionPointText.setFont(m_font);
 
   m_lineAText.setPosition(5.f, windowHeight - 70.f);
   m_lineApText.setPosition(100.f, windowHeight - 70.f);
@@ -80,6 +82,7 @@ euclidean_plane::euclidean_plane()
   m_lineBqText.setPosition(260.f, windowHeight - 40.f);
   m_lineBslopeText.setPosition(420.f, windowHeight - 40.f);
   m_lineByInterceptText.setPosition(640.f, windowHeight - 40.f);
+  m_intersectionPointText.setPosition(5.f, yBias);
   
   m_lineAText.setCharacterSize(fontSize);
   m_lineApText.setCharacterSize(fontSize);
@@ -91,11 +94,13 @@ euclidean_plane::euclidean_plane()
   m_lineBqText.setCharacterSize(fontSize);
   m_lineBslopeText.setCharacterSize(fontSize);
   m_lineByInterceptText.setCharacterSize(fontSize);
+  m_intersectionPointText.setCharacterSize(fontSize);
 
   m_lineApText.setFillColor(sf::Color::Red);
   m_lineAqText.setFillColor(sf::Color::Yellow);
   m_lineBpText.setFillColor(sf::Color::Blue);
   m_lineBqText.setFillColor(sf::Color::Cyan);
+  m_intersectionPointText.setFillColor(sf::Color::Green);
 
   m_lineAText.setString("Line A = ");
   m_lineBText.setString("Line B = ");
@@ -152,8 +157,7 @@ void euclidean_plane::update() {
       if (m_physicalLineA.intersects(m_physicalLineB, m_physicalIntersectionPoint)) {
         updatePoint(m_logicalIntersectionPoint, m_physicalIntersectionPoint);
         m_drawIntersections = true;
-        std::cout << "Lines A and B intersect.\n";
-        m_physicalIntersectionPoint.print();
+        updateIntersectionPointInfo();
       }
     }
   }
@@ -182,6 +186,7 @@ void euclidean_plane::render() {
     m_window.draw(m_lineByInterceptText);
     if (m_drawIntersections) {
       m_window.draw(m_logicalIntersectionPoint);
+      m_window.draw(m_intersectionPointText);
     }
   }
   m_window.display();
@@ -234,6 +239,11 @@ void euclidean_plane::updateLinesInfo() {
   m_lineBqText.setString("q(" + toString(m_physicalLineB.q.x) + ", " + toString(m_physicalLineB.q.y) + "),");
   m_lineBslopeText.setString("Slope = " + toString(m_physicalLineB.slope));
   m_lineByInterceptText.setString("y-intercept = " + toString(m_physicalLineB.yIntercept));
+  return;
+}
+
+void euclidean_plane::updateIntersectionPointInfo() {
+  m_intersectionPointText.setString("i(" + toString(m_physicalIntersectionPoint.x) + ", " + toString(m_physicalIntersectionPoint.y) + ")");
   return;
 }
 
