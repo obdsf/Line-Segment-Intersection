@@ -11,14 +11,14 @@
 // ### # #################################################################################### # ###
 
 // Constructors & Destructor
-point::point(int x, int y)
+point::point(float x, float y)
 	:x{ x }, y{ y }
 {}
 
 point::~point() {}
 
 // Member Functions
-void point::update(int xVal, int yVal) {
+void point::update(float xVal, float yVal) {
 	x = xVal;
 	y = yVal;
 }

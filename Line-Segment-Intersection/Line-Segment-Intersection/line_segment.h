@@ -14,10 +14,10 @@ class line_segment {
 public:
 	// Constructors & Destructor
 	line_segment(point &p, point &q);
-	line_segment(int px, int py, int qx, int qy);
+	line_segment(float px, float py, float qx, float qy);
 	~line_segment();
 	// Member Functions
-	void update(int px, int py, int qx, int qy);
+	void update(float px, float py, float qx, float qy);
 	void print();
 	bool eq(line_segment& l);
 	bool parallel(line_segment& l);
@@ -31,10 +31,10 @@ public:
 	point q;
 	float slope;
 	float yIntercept;
-	int xMin;
-	int xMax;
-	int yMin;
-	int yMax;
+	float xMin;
+	float xMax;
+	float yMin;
+	float yMax;
 
 private:
 	// Member Functions

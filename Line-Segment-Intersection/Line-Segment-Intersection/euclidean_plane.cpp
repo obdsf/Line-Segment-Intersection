@@ -23,17 +23,22 @@ const int euclidean_plane::yBias{ windowHeight / 2 };
 const int euclidean_plane::distMin{ -300 };
 const int euclidean_plane::distMax{ 300 };
 const int euclidean_plane::fontSize{ 25 };
+const int euclidean_plane::intersectionPointsRadius{ 3 };
 
 euclidean_plane::euclidean_plane()
   : m_window(sf::VideoMode(windowWidth, windowHeight), "Line Segment Intersection Driver")
   , m_physicalLineA{ 0, 0, 1, 1 }, m_physicalLineB{ 0, 0, 1, 1 }
+  , m_physicalIntersectionPoint{}
   , m_xAxis{ sf::Lines, 2 }, m_yAxis{ sf::Lines, 2 }
   , m_logicalLineA{ sf::Lines, 2 }, m_logicalLineB{ sf::Lines, 2 }
+  , m_logicalIntersectionPoint{}
   , m_font{}, m_statisticsText{}
   , m_lineAText{}, m_lineApText{}, m_lineAqText{}, m_lineAslopeText{}
   , m_lineBText{}, m_lineBpText{}, m_lineBqText{}, m_lineBslopeText{}
   , m_statisticsUpdateTime{}, m_statisticsNumFrames{ 0 }
   , m_genNewSetOfLines{ false }, m_reset{ true }, m_exit{ false }
+  , m_calcIntersections{ false }, m_drawIntersections{ false }
+  , m_hideAxis{ false }
   , m_distribution{ distMin, distMax }
 {
   m_xAxis[0].position = sf::Vector2f(leftMargin, yBias);
@@ -45,6 +50,9 @@ euclidean_plane::euclidean_plane()
   m_logicalLineA[1].color = sf::Color::Yellow;
   m_logicalLineB[0].color = sf::Color::Blue;
   m_logicalLineB[1].color = sf::Color::Cyan;
+
+  m_logicalIntersectionPoint.setRadius(intersectionPointsRadius);
+  m_logicalIntersectionPoint.setFillColor(sf::Color::Green);
 
   m_font.loadFromFile("fonts/Sansation.ttf");
   m_statisticsText.setFont(m_font);
@@ -129,51 +137,70 @@ void euclidean_plane::processEvents() {
 }
 
 void euclidean_plane::update() {
-  if (m_genNewSetOfLines) {
-    genNewSetOfLines(m_physicalLineA);
-    genNewSetOfLines(m_physicalLineB);
-    updateLine(m_logicalLineA, m_physicalLineA);
-    updateLine(m_logicalLineB, m_physicalLineB);
-    updateLinesInfo();
-  }
+  if (m_exit) m_window.close();
   if (m_reset) {
     m_distribution.reset();
+  } else {
+    if (m_genNewSetOfLines) {
+      genNewSetOfLines(m_physicalLineA);
+      genNewSetOfLines(m_physicalLineB);
+      updateLine(m_logicalLineA, m_physicalLineA);
+      updateLine(m_logicalLineB, m_physicalLineB);
+      updateLinesInfo();
+    }
+    if (m_calcIntersections) {
+      if (m_physicalLineA.intersects(m_physicalLineB, m_physicalIntersectionPoint)) {
+        updatePoint(m_logicalIntersectionPoint, m_physicalIntersectionPoint);
+        m_drawIntersections = true;
+        std::cout << "Lines A and B intersect.\n";
+        m_physicalIntersectionPoint.print();
+      }
+    }
   }
-  if (m_exit) m_window.close();
   return;
 }
 
 void euclidean_plane::render() {
   m_window.clear();
-  m_window.draw(m_xAxis);
-  m_window.draw(m_yAxis);
   m_window.draw(m_statisticsText);
+  if (!m_hideAxis) {
+    m_window.draw(m_xAxis);
+    m_window.draw(m_yAxis);
+  }
   if (!m_reset) {
-  m_window.draw(m_lineAText);
-  m_window.draw(m_lineApText);
-  m_window.draw(m_lineAqText);
-  m_window.draw(m_lineAslopeText);
-  m_window.draw(m_lineAyInterceptText);
-  m_window.draw(m_lineBText);
-  m_window.draw(m_lineBpText);
-  m_window.draw(m_lineBqText);
-  m_window.draw(m_lineBslopeText);
-  m_window.draw(m_logicalLineA);
-  m_window.draw(m_logicalLineB);
-  m_window.draw(m_lineByInterceptText);
+    m_window.draw(m_lineAText);
+    m_window.draw(m_lineApText);
+    m_window.draw(m_lineAqText);
+    m_window.draw(m_lineAslopeText);
+    m_window.draw(m_lineAyInterceptText);
+    m_window.draw(m_lineBText);
+    m_window.draw(m_lineBpText);
+    m_window.draw(m_lineBqText);
+    m_window.draw(m_lineBslopeText);
+    m_window.draw(m_logicalLineA);
+    m_window.draw(m_logicalLineB);
+    m_window.draw(m_lineByInterceptText);
+    if (m_drawIntersections) {
+      m_window.draw(m_logicalIntersectionPoint);
+    }
   }
   m_window.display();
   return;
 }
 
 void euclidean_plane::handleUserInput(sf::Keyboard::Key key, bool isPressed) {
-  if (m_reset) m_reset = false;
-  if (key == sf::Keyboard::Space) m_genNewSetOfLines = isPressed;
-  if (key == sf::Keyboard::R) m_reset = true;
   if (key == sf::Keyboard::Escape) m_exit = isPressed;
-
-  std::cout << m_physicalLineA.intersects(m_physicalLineB) << '\n';
-
+  if (key == sf::Keyboard::Space) {
+    m_genNewSetOfLines = isPressed;
+    if(m_drawIntersections) m_drawIntersections = false;
+    if (m_reset) m_reset = false;
+  }
+  if (key == sf::Keyboard::R) m_reset = true;
+  if (key == sf::Keyboard::C) m_calcIntersections = isPressed;
+  if (key == sf::Keyboard::H && isPressed) {
+    if (m_hideAxis) m_hideAxis = false;
+    else m_hideAxis = true;
+  }
   return;
 }
 
@@ -190,6 +217,11 @@ void euclidean_plane::genNewSetOfLines(line_segment& physicalLine) {
 void euclidean_plane::updateLine(sf::VertexArray& logicalLine, line_segment& physicalLine) {
   logicalLine[0].position = sf::Vector2f(physicalLine.p.x + xBias, yBias - physicalLine.p.y);
   logicalLine[1].position = sf::Vector2f(physicalLine.q.x + xBias, yBias - physicalLine.q.y);
+  return;
+}
+
+void euclidean_plane::updatePoint(sf::CircleShape& intersectionPoint, point& k) {
+  intersectionPoint.setPosition(k.x + xBias - intersectionPointsRadius, yBias - k.y - intersectionPointsRadius);
   return;
 }
 
@@ -218,6 +250,11 @@ void euclidean_plane::updateStatistics(sf::Time elapsedTime) {
     m_statisticsNumFrames = 0;
   }
   return;
+}
+
+float orientation(point a, point b, point c) {
+  return (b.y - a.y) * (c.x - b.x) - (c.y - b.y) * (b.x - a.x);
+  //return (b.y - a.y) / (b.x - a.x) - (c.y - b.y) / (c.x - b.x);
 }
 
 template <typename T>

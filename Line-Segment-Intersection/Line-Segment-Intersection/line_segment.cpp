@@ -31,7 +31,7 @@ line_segment::line_segment(point& p, point& q)
 	}
 }
 
-line_segment::line_segment(int px, int py, int qx, int qy) {
+line_segment::line_segment(float px, float py, float qx, float qy) {
 	p.update(px, py);
 	q.update(qx, qy);
 	slope = calcSlope();
@@ -55,7 +55,7 @@ line_segment::line_segment(int px, int py, int qx, int qy) {
 line_segment::~line_segment() {}
 
 // Member Functions
-void line_segment::update(int px, int py, int qx, int qy) {
+void line_segment::update(float px, float py, float qx, float qy) {
 	p.update(px, py);
 	q.update(qx, qy);
 	slope = calcSlope();
@@ -95,12 +95,12 @@ bool line_segment::eq(line_segment& l) {
 
 float line_segment::calcSlope() {
 	if (p.x == q.x) return NULL;
-	return ((float)q.y - (float)p.y) / ((float)q.x - (float)p.x);
+	return (q.y - p.y) / (q.x - p.x);
 }
 
 float line_segment::calcYIntercept() {
 	if (slope == NULL) return NULL;
-	return (float)p.y - (float)p.x * slope;
+	return p.y - p.x * slope;
 }
 
 bool line_segment::parallel(line_segment& l) {
@@ -119,14 +119,24 @@ bool line_segment::partially_contains(point& k) {
 }
 
 bool line_segment::contains(point& k) {
-	if(partially_contains(k) && k.y == slope * k.x + yIntercept) return true;
+	if (partially_contains(k)) {
+		if (1) {
+			if (abs(((double)k.y - (double)slope * (double)k.x - (double)yIntercept)) <= 0.1) return true;
+			/* Without the cast there is a risk of arithmetic overflow (C26451)
+			 * If calculated value is too big and overflows the remainders
+			  * might be less than 0.5 and thus return true, falsely.
+			 */
+		} else {
+			if(k.y == slope * k.x + yIntercept) return true;
+		}
+	}
 	return false;
 }
 
 bool line_segment::partially_intersects(line_segment& l, point& k) {
 	if (parallel(l)) return false;
-	int x = l.yIntercept - yIntercept / slope - l.slope;
-	int y = x * slope + yIntercept;
+	float x = (l.yIntercept - yIntercept) / (slope - l.slope); // slope * x + yIntercept = l.slope * x + l.yIntercept => x * (slope - l.slope) = l.yIntercept - yIntercept => x = (l.yIntercept - yIntercept) / (slope - l.slope)
+	float y = x * slope + yIntercept;
 	k.update(x, y);
 	return true;
 }
