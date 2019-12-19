@@ -29,6 +29,8 @@ private:
   static const int distMax;
   static const int fontSize;
   static const int intersectionPointsRadius;
+  static const std::string singlePairModeText;
+  static const std::string multiPairModeText;
 
   sf::RenderWindow m_window;
 
@@ -43,6 +45,7 @@ private:
   sf::CircleShape m_logicalIntersectionPoint;
 
   sf::Font m_font;
+
   sf::Text m_statisticsText;
   sf::Text m_lineAText;
   sf::Text m_lineApText;
@@ -55,16 +58,27 @@ private:
   sf::Text m_lineBslopeText;
   sf::Text m_lineByInterceptText;
   sf::Text m_intersectionPointText;
+  sf::Text m_simulationModeText;
+
   sf::Time m_statisticsUpdateTime;
   std::size_t m_statisticsNumFrames;
 
+  // Actions
   bool m_exit;
-  bool m_reset;
-  bool m_calcIntersections;
-  bool m_hideAxis;
-
   bool m_genNewSetOfLines;
-  bool m_drawIntersections;
+  bool m_calcIntersections;
+  bool m_sweep;
+  bool m_toggleSimulationMode;
+  bool m_toggleAxisHide;
+  bool m_eraseCurrentSet;
+  // States
+  bool m_reset;
+  bool m_hideAxis;
+  bool m_drawSinglePairIntersections;
+  bool m_drawMultiPairIntersections;
+  bool m_singlePairMode;
+  bool m_singlePairTrashed;
+  bool m_multiPairTrashed;
 
   std::default_random_engine m_generator;
   std::uniform_int_distribution<int> m_distribution;
@@ -72,7 +86,7 @@ private:
 // ### # Class Member Functions # ###
 public:
   euclidean_plane(); // Class Constructor
-  void launch(); // Window Main Loop
+  void run(); // Window Main Loop
 
 
 private:
@@ -87,6 +101,7 @@ private:
   void updateLinesInfo();
   void updateIntersectionPointInfo();
   void updateStatistics(sf::Time elapsedTime);
+  void updateSimulationModeInfo();
 
   float orientation(point a, point b, point c);
 

@@ -11,7 +11,7 @@
 
 int main() {
 	euclidean_plane euclideanPlane;
-	euclideanPlane.launch();
+	euclideanPlane.run();
 
 	return 0;
 }
