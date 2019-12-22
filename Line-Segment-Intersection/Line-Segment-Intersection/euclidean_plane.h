@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include <random>
+#include <vector>
 // Boost Library
 // SFML : Simple and Fast Multimedia Library
 #include <SFML/Graphics.hpp>
@@ -31,18 +32,26 @@ private:
   static const int intersectionPointsRadius;
   static const std::string singlePairModeText;
   static const std::string multiPairModeText;
+  static int multiPairSetSize;
 
   sf::RenderWindow m_window;
+
+  sf::VertexArray m_xAxis;
+  sf::VertexArray m_yAxis;
 
   line_segment m_physicalLineA;
   line_segment m_physicalLineB;
   point m_physicalIntersectionPoint;
 
-  sf::VertexArray m_xAxis;
-  sf::VertexArray m_yAxis;
   sf::VertexArray m_logicalLineA;
   sf::VertexArray m_logicalLineB;
   sf::CircleShape m_logicalIntersectionPoint;
+
+  std::vector<line_segment> m_physicalMultiPairSet;
+  std::vector<point> m_physicalMultiPairIntersectionPoints;
+
+  std::vector<sf::VertexArray> m_logicalMultiPairSet;
+  std::vector<sf::CircleShape> m_logicalMultiPairIntersectionPoints;
 
   sf::Font m_font;
 
@@ -95,7 +104,7 @@ private:
   void render();
 
   void handleUserInput(sf::Keyboard::Key key, bool isPressed);
-  void genNewSetOfLines(line_segment& physicalLine);
+  void genNewLine(line_segment& physicalLine);
   void updateLine(sf::VertexArray& logicalLine, line_segment& physicalLine);
   void updatePoint(sf::CircleShape& intersectionPoint, point& k);
   void updateLinesInfo();

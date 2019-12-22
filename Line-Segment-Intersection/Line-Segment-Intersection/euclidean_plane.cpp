@@ -4,6 +4,7 @@
 // STL : Standard Template Library
 #include <iostream>
 #include <random>
+#include <vector>
 // Boost Library
 // SFML : Simple and Fast Multimedia Library
 // Custom Headers
@@ -26,6 +27,7 @@ const int euclidean_plane::fontSize{ 25 };
 const int euclidean_plane::intersectionPointsRadius{ 3 };
 const std::string euclidean_plane::singlePairModeText{ "Single Pair Mode" };
 const std::string euclidean_plane::multiPairModeText{ "Multi Pair Mode" };
+int euclidean_plane::multiPairSetSize{ 25 };
 
 euclidean_plane::euclidean_plane()
   : m_window(sf::VideoMode(windowWidth, windowHeight), "Line Segment Intersection Driver")
@@ -33,6 +35,8 @@ euclidean_plane::euclidean_plane()
   , m_physicalIntersectionPoint{}
   , m_xAxis{ sf::Lines, 2 }, m_yAxis{ sf::Lines, 2 }
   , m_logicalLineA{ sf::Lines, 2 }, m_logicalLineB{ sf::Lines, 2 }
+  , m_physicalMultiPairSet{}, m_physicalMultiPairIntersectionPoints{}
+  , m_logicalMultiPairSet{}, m_logicalMultiPairIntersectionPoints{}
   , m_logicalIntersectionPoint{}
   , m_font{}, m_statisticsText{}
   , m_lineAText{}, m_lineApText{}, m_lineAqText{}, m_lineAslopeText{}
@@ -150,50 +154,91 @@ void euclidean_plane::processEvents() {
 }
 
 void euclidean_plane::update() {
+  // Exit the Application
   if (m_exit) m_window.close();
+  // Reset the Random Number Generation Distribution
   if (m_reset) {
     m_distribution.reset();
+    std::cout << "Distribution Reset.\n";
     m_reset = false;
   }
+  // Change between Single and Multi Pair Simulation
   if (m_toggleSimulationMode) {
     m_singlePairMode = m_singlePairMode ? false : true; // Toggle Simulation State
     updateSimulationModeInfo();
     m_toggleSimulationMode = false;
   }
+  // Show/Hide Axis System
   if (m_toggleAxisHide) {
     m_hideAxis = m_hideAxis ? false : true; // Hide/Show Axis
     m_toggleAxisHide = false;
   }
+  // Erase Current Set
   if (m_eraseCurrentSet) {
     if (m_singlePairMode) m_singlePairTrashed = true;
     else m_multiPairTrashed = true;
     m_eraseCurrentSet = false;
   }
+  // Generate New Set of Lines
   if (m_genNewSetOfLines) {
     if (m_singlePairMode) {
-      genNewSetOfLines(m_physicalLineA);
-      genNewSetOfLines(m_physicalLineB);
+      genNewLine(m_physicalLineA);
+      genNewLine(m_physicalLineB);
       updateLine(m_logicalLineA, m_physicalLineA);
       updateLine(m_logicalLineB, m_physicalLineB);
       if (m_singlePairTrashed) m_singlePairTrashed = false;
       if (m_drawSinglePairIntersections) m_drawSinglePairIntersections = false;
       updateLinesInfo();
     } else {
-
+      m_physicalMultiPairSet.clear();
+      m_logicalMultiPairSet.clear();
+      for (int i = 0; i < multiPairSetSize; i++) {
+        line_segment pLine{
+          (float)m_distribution(m_generator),
+          (float)m_distribution(m_generator),
+          (float)m_distribution(m_generator),
+          (float)m_distribution(m_generator)
+        };
+        sf::VertexArray lLine{ sf::Lines, 2 };
+        updateLine(lLine, pLine);
+        m_physicalMultiPairSet.push_back(pLine);
+        m_logicalMultiPairSet.push_back(lLine);
+      }
       if (m_multiPairTrashed) m_multiPairTrashed = false;
       if (m_drawMultiPairIntersections) m_drawMultiPairIntersections = false;
     }
     m_genNewSetOfLines = false;
   }
+  // Calculate Intersections (Naive Algorithm)
   if (m_calcIntersections) {
     if (m_singlePairMode) {
-      if (m_physicalLineA.intersects(m_physicalLineB, m_physicalIntersectionPoint)) {
-        updatePoint(m_logicalIntersectionPoint, m_physicalIntersectionPoint);
-        m_drawSinglePairIntersections = true;
-        updateIntersectionPointInfo();
+      if (!m_singlePairTrashed) {
+        if (m_physicalLineA.intersects(m_physicalLineB, m_physicalIntersectionPoint)) {
+          updatePoint(m_logicalIntersectionPoint, m_physicalIntersectionPoint);
+          m_drawSinglePairIntersections = true;
+          updateIntersectionPointInfo();
+        }
       }
     } else {
+      if (!m_multiPairTrashed) {
+        m_physicalMultiPairIntersectionPoints.clear();
+        m_logicalMultiPairIntersectionPoints.clear();
+        for (int i = 0; i < multiPairSetSize; i++) {
+          for (int j = 0; j < multiPairSetSize; j++) {
+            if (i == j) break;
 
+            point pIntPoint;
+            if (m_physicalMultiPairSet[i].intersects(m_physicalMultiPairSet[j], pIntPoint)) {
+              sf::CircleShape lIntPoint;
+              lIntPoint.setRadius(intersectionPointsRadius);
+              lIntPoint.setFillColor(sf::Color::Green);
+              updatePoint(lIntPoint, pIntPoint);
+              m_logicalMultiPairIntersectionPoints.push_back(lIntPoint);
+              m_drawMultiPairIntersections = true;
+            }
+          }
+        }
+      }
     }
     m_calcIntersections = false;
   }
@@ -229,9 +274,13 @@ void euclidean_plane::render() {
     }
   } else {
     if (!m_multiPairTrashed) {
-
+      for (sf::VertexArray lineSegment : m_logicalMultiPairSet) {
+        m_window.draw(lineSegment);
+      }
       if (m_drawMultiPairIntersections) {
-
+        for (sf::CircleShape intersectionPoint : m_logicalMultiPairIntersectionPoints) {
+          m_window.draw(intersectionPoint);
+        }
       }
     }
   }
@@ -251,7 +300,7 @@ void euclidean_plane::handleUserInput(sf::Keyboard::Key key, bool isPressed) {
   return;
 }
 
-void euclidean_plane::genNewSetOfLines(line_segment& physicalLine) {
+void euclidean_plane::genNewLine(line_segment& physicalLine) {
   physicalLine.update(
     m_distribution(m_generator),
     m_distribution(m_generator),
