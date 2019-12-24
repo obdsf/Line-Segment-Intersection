@@ -17,6 +17,7 @@
 class euclidean_plane : private sf::NonCopyable {
 // ### # Class Member Variables # ###
 private:
+  // Static Variables
   static const sf::Time timePerFrame;
   static const int windowWidth;
   static const int windowHeight;
@@ -30,10 +31,15 @@ private:
   static const int distMax;
   static const int fontSize;
   static const int intersectionPointsRadius;
+  static const int multiPairSetSizeThreshold;
   static const std::string singlePairModeText;
   static const std::string multiPairModeText;
-  static int multiPairSetSize;
+  static const std::string fancyCalculationModeText;
+  static const std::string fastCalculationModeText;
+  static const std::string updateLimiterOnText;
+  static const std::string updateLimiterOffText;
 
+  // Other
   sf::RenderWindow m_window;
 
   sf::VertexArray m_xAxis;
@@ -48,10 +54,12 @@ private:
   sf::CircleShape m_logicalIntersectionPoint;
 
   std::vector<line_segment> m_physicalMultiPairSet;
-  std::vector<point> m_physicalMultiPairIntersectionPoints;
+  std::vector<point> m_physicalMultiPairIntersectionPointsNaive;
+  std::vector<point> m_physicalMultiPairIntersectionPointsSweep;
 
   std::vector<sf::VertexArray> m_logicalMultiPairSet;
-  std::vector<sf::CircleShape> m_logicalMultiPairIntersectionPoints;
+  std::vector<sf::CircleShape> m_logicalMultiPairIntersectionPointsNaive;
+  std::vector<sf::CircleShape> m_logicalMultiPairIntersectionPointsSweep;
 
   sf::Font m_font;
 
@@ -68,6 +76,9 @@ private:
   sf::Text m_lineByInterceptText;
   sf::Text m_intersectionPointText;
   sf::Text m_simulationModeText;
+  sf::Text m_calculationModeText;
+  sf::Text m_updateModeText;
+  sf::Text m_multiPairSetSizeText;
 
   sf::Time m_statisticsUpdateTime;
   std::size_t m_statisticsNumFrames;
@@ -75,11 +86,14 @@ private:
   // Actions
   bool m_exit;
   bool m_genNewSetOfLines;
-  bool m_calcIntersections;
-  bool m_sweep;
+  bool m_calcIntersectionsNaive;
+  bool m_calcIntersectionsSweep;
   bool m_toggleSimulationMode;
   bool m_toggleAxisHide;
   bool m_eraseCurrentSet;
+  bool m_toggleCalculationMode;
+  bool m_toggleUpdateMode;
+
   // States
   bool m_reset;
   bool m_hideAxis;
@@ -88,7 +102,16 @@ private:
   bool m_singlePairMode;
   bool m_singlePairTrashed;
   bool m_multiPairTrashed;
+  bool m_fancyCalculationMode;
+  bool m_useUpdateLimiter;
+  bool m_currentlyCalculatingIntersectionsNaive;
 
+  // Iterators
+  int m_multiPairSetSize;
+  int m_naiveIterI;
+  int m_naiveIterJ;
+
+  // Random Numbers
   std::default_random_engine m_generator;
   std::uniform_int_distribution<int> m_distribution;
 
@@ -110,7 +133,8 @@ private:
   void updateLinesInfo();
   void updateIntersectionPointInfo();
   void updateStatistics(sf::Time elapsedTime);
-  void updateSimulationModeInfo();
+  void updateSimulationStateInfo();
+  void updateMultiPairSetSize(bool increase);
 
   float orientation(point a, point b, point c);
 

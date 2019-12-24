@@ -25,9 +25,13 @@ const int euclidean_plane::distMin{ -300 };
 const int euclidean_plane::distMax{ 300 };
 const int euclidean_plane::fontSize{ 25 };
 const int euclidean_plane::intersectionPointsRadius{ 3 };
-const std::string euclidean_plane::singlePairModeText{ "Single Pair Mode" };
-const std::string euclidean_plane::multiPairModeText{ "Multi Pair Mode" };
-int euclidean_plane::multiPairSetSize{ 25 };
+const int euclidean_plane::multiPairSetSizeThreshold{ 100 };
+const std::string euclidean_plane::singlePairModeText{ "Single Pair Mode (SPM)" };
+const std::string euclidean_plane::multiPairModeText{ "Multi Pair Mode  (MPM)" };
+const std::string euclidean_plane::fancyCalculationModeText{ "Fancy" };
+const std::string euclidean_plane::fastCalculationModeText{ "Fast" };
+const std::string euclidean_plane::updateLimiterOnText{ "Update Limiter On" };
+const std::string euclidean_plane::updateLimiterOffText{ "Update Limiter Off" };
 
 euclidean_plane::euclidean_plane()
   : m_window(sf::VideoMode(windowWidth, windowHeight), "Line Segment Intersection Driver")
@@ -35,21 +39,27 @@ euclidean_plane::euclidean_plane()
   , m_physicalIntersectionPoint{}
   , m_xAxis{ sf::Lines, 2 }, m_yAxis{ sf::Lines, 2 }
   , m_logicalLineA{ sf::Lines, 2 }, m_logicalLineB{ sf::Lines, 2 }
-  , m_physicalMultiPairSet{}, m_physicalMultiPairIntersectionPoints{}
-  , m_logicalMultiPairSet{}, m_logicalMultiPairIntersectionPoints{}
+  , m_physicalMultiPairSet{}, m_physicalMultiPairIntersectionPointsNaive{}
+  , m_logicalMultiPairSet{}, m_logicalMultiPairIntersectionPointsNaive{}
   , m_logicalIntersectionPoint{}
   , m_font{}, m_statisticsText{}
   , m_lineAText{}, m_lineApText{}, m_lineAqText{}, m_lineAslopeText{}
   , m_lineBText{}, m_lineBpText{}, m_lineBqText{}, m_lineBslopeText{}
   , m_intersectionPointText{}, m_simulationModeText{}
+  , m_calculationModeText{}, m_updateModeText{}
+  , m_multiPairSetSizeText{}
   , m_statisticsUpdateTime{}, m_statisticsNumFrames{ 0 }
   , m_genNewSetOfLines{ false }, m_reset{ false }, m_exit{ false }
-  , m_calcIntersections{ false }, m_sweep{ false }, m_toggleSimulationMode{ false }
+  , m_calcIntersectionsNaive{ false }, m_calcIntersectionsSweep{ false }, m_toggleSimulationMode{ false }
   , m_toggleAxisHide{ false }, m_eraseCurrentSet{ false }
+  , m_toggleCalculationMode{ false }, m_toggleUpdateMode{ false }
   , m_drawSinglePairIntersections{ false }, m_drawMultiPairIntersections{ false }
   , m_hideAxis{ false }
   , m_singlePairMode{ true }
   , m_singlePairTrashed{ false }, m_multiPairTrashed{ false }
+  , m_fancyCalculationMode{ true }, m_useUpdateLimiter{ false }
+  , m_currentlyCalculatingIntersectionsNaive{ false }
+  , m_multiPairSetSize{ 25 }, m_naiveIterI{ 0 }, m_naiveIterJ{ 0 }
   , m_distribution{ distMin, distMax }
 {
   m_xAxis[0].position = sf::Vector2f(leftMargin, yBias);
@@ -66,10 +76,8 @@ euclidean_plane::euclidean_plane()
   m_logicalIntersectionPoint.setFillColor(sf::Color::Green);
 
   m_font.loadFromFile("fonts/Sansation.ttf");
-  m_statisticsText.setFont(m_font);
-  m_statisticsText.setPosition(5.f, 5.f);
-  m_statisticsText.setCharacterSize(fontSize);
 
+  m_statisticsText.setFont(m_font);
   m_lineAText.setFont(m_font);
   m_lineApText.setFont(m_font);
   m_lineAqText.setFont(m_font);
@@ -82,7 +90,11 @@ euclidean_plane::euclidean_plane()
   m_lineByInterceptText.setFont(m_font);
   m_intersectionPointText.setFont(m_font);
   m_simulationModeText.setFont(m_font);
+  m_calculationModeText.setFont(m_font);
+  m_updateModeText.setFont(m_font);
+  m_multiPairSetSizeText.setFont(m_font);
 
+  m_statisticsText.setPosition(5.f, 5.f);
   m_lineAText.setPosition(5.f, windowHeight - 70.f);
   m_lineApText.setPosition(100.f, windowHeight - 70.f);
   m_lineAqText.setPosition(260.f, windowHeight - 70.f);
@@ -94,8 +106,12 @@ euclidean_plane::euclidean_plane()
   m_lineBslopeText.setPosition(420.f, windowHeight - 40.f);
   m_lineByInterceptText.setPosition(640.f, windowHeight - 40.f);
   m_intersectionPointText.setPosition(5.f, yBias - fontSize);
-  m_simulationModeText.setPosition(windowWidth - 200.f, windowHeight - 70.f);
+  m_simulationModeText.setPosition(windowWidth - 270.f, windowHeight - 70.f);
+  m_calculationModeText.setPosition(windowWidth - 270.f, windowHeight - 40.f);
+  m_updateModeText.setPosition(windowWidth - 270.f, 5.f);
+  m_multiPairSetSizeText.setPosition(windowWidth / 2 - 80.f, 5.f);
   
+  m_statisticsText.setCharacterSize(fontSize);
   m_lineAText.setCharacterSize(fontSize);
   m_lineApText.setCharacterSize(fontSize);
   m_lineAqText.setCharacterSize(fontSize);
@@ -108,6 +124,9 @@ euclidean_plane::euclidean_plane()
   m_lineByInterceptText.setCharacterSize(fontSize);
   m_intersectionPointText.setCharacterSize(fontSize);
   m_simulationModeText.setCharacterSize(fontSize);
+  m_calculationModeText.setCharacterSize(fontSize);
+  m_updateModeText.setCharacterSize(fontSize);
+  m_multiPairSetSizeText.setCharacterSize(fontSize);
 
   m_lineApText.setFillColor(sf::Color::Red);
   m_lineAqText.setFillColor(sf::Color::Yellow);
@@ -115,17 +134,30 @@ euclidean_plane::euclidean_plane()
   m_lineBqText.setFillColor(sf::Color::Cyan);
   m_intersectionPointText.setFillColor(sf::Color::Green);
 
-  updateSimulationModeInfo();
+  updateSimulationStateInfo();
 }
 
 void euclidean_plane::run() {
+  // Test Zone Start
+  line_segment l1{ 0, 0, 0, 1 };
+  line_segment l2{ 1, 0, 2, 1 };
+  std::cout << "l1 slope: " << l1.slope << '\n'
+    << "l2 slope: " << l2.slope << '\n';
+  std::cout << "l1 parallel to l2: " << l1.parallel(l2) << '\n';
+  
+  // Test Zone End
   sf::Clock clock;
   sf::Time timeSinceLastUpdate = sf::Time::Zero;
   while (m_window.isOpen()) {
     sf::Time elapsedTime = clock.restart();
-    timeSinceLastUpdate += elapsedTime;
-    while (timeSinceLastUpdate > timePerFrame) {
-      timeSinceLastUpdate -= timePerFrame;
+    if (m_useUpdateLimiter) {
+      timeSinceLastUpdate += elapsedTime;
+      while (timeSinceLastUpdate > timePerFrame) {
+        timeSinceLastUpdate -= timePerFrame;
+        processEvents();
+        update();
+      }
+    } else {
       processEvents();
       update();
     }
@@ -165,8 +197,20 @@ void euclidean_plane::update() {
   // Change between Single and Multi Pair Simulation
   if (m_toggleSimulationMode) {
     m_singlePairMode = m_singlePairMode ? false : true; // Toggle Simulation State
-    updateSimulationModeInfo();
+    updateSimulationStateInfo();
     m_toggleSimulationMode = false;
+  }
+  // Fancy/Fast calculation way
+  if (m_toggleCalculationMode) {
+    m_fancyCalculationMode = m_fancyCalculationMode ? false : true; // Fast/Fancy calculation
+    updateSimulationStateInfo();
+    m_toggleCalculationMode = false;
+  }
+  // 60 updates per second limit On/Off
+  if (m_toggleUpdateMode) {
+    m_useUpdateLimiter = m_useUpdateLimiter ? false : true; // Uncapped/60 updates per second
+    updateSimulationStateInfo();
+    m_toggleUpdateMode = false;
   }
   // Show/Hide Axis System
   if (m_toggleAxisHide) {
@@ -192,7 +236,7 @@ void euclidean_plane::update() {
     } else {
       m_physicalMultiPairSet.clear();
       m_logicalMultiPairSet.clear();
-      for (int i = 0; i < multiPairSetSize; i++) {
+      for (int i = 0; i < m_multiPairSetSize; i++) {
         line_segment pLine{
           (float)m_distribution(m_generator),
           (float)m_distribution(m_generator),
@@ -206,11 +250,12 @@ void euclidean_plane::update() {
       }
       if (m_multiPairTrashed) m_multiPairTrashed = false;
       if (m_drawMultiPairIntersections) m_drawMultiPairIntersections = false;
+      if (m_currentlyCalculatingIntersectionsNaive) m_currentlyCalculatingIntersectionsNaive = false;
     }
     m_genNewSetOfLines = false;
   }
   // Calculate Intersections (Naive Algorithm)
-  if (m_calcIntersections) {
+  if (m_calcIntersectionsNaive) {
     if (m_singlePairMode) {
       if (!m_singlePairTrashed) {
         if (m_physicalLineA.intersects(m_physicalLineB, m_physicalIntersectionPoint)) {
@@ -221,26 +266,61 @@ void euclidean_plane::update() {
       }
     } else {
       if (!m_multiPairTrashed) {
-        m_physicalMultiPairIntersectionPoints.clear();
-        m_logicalMultiPairIntersectionPoints.clear();
-        for (int i = 0; i < multiPairSetSize; i++) {
-          for (int j = 0; j < multiPairSetSize; j++) {
-            if (i == j) break;
+        // reset all buffers for recalculation
+        m_physicalMultiPairIntersectionPointsNaive.clear();
+        m_logicalMultiPairIntersectionPointsNaive.clear();
+        if (m_fancyCalculationMode) { // Fancy calculation way
+          m_naiveIterI = 0;
+          m_naiveIterJ = 0;
+          m_currentlyCalculatingIntersectionsNaive = true;
+        } else { // fast calculation way
+          for (int i = 0; i < m_multiPairSetSize; i++) {
+            for (int j = 0; j < m_multiPairSetSize; j++) {
+              if (i == j) break;
 
-            point pIntPoint;
-            if (m_physicalMultiPairSet[i].intersects(m_physicalMultiPairSet[j], pIntPoint)) {
-              sf::CircleShape lIntPoint;
-              lIntPoint.setRadius(intersectionPointsRadius);
-              lIntPoint.setFillColor(sf::Color::Green);
-              updatePoint(lIntPoint, pIntPoint);
-              m_logicalMultiPairIntersectionPoints.push_back(lIntPoint);
-              m_drawMultiPairIntersections = true;
+              point pIntPoint;
+              if (m_physicalMultiPairSet[i].intersects(m_physicalMultiPairSet[j], pIntPoint)) {
+                sf::CircleShape lIntPoint;
+                lIntPoint.setRadius(intersectionPointsRadius);
+                lIntPoint.setFillColor(sf::Color::Green);
+                updatePoint(lIntPoint, pIntPoint);
+                m_logicalMultiPairIntersectionPointsNaive.push_back(lIntPoint);
+                m_drawMultiPairIntersections = true;
+              }
             }
           }
         }
       }
     }
-    m_calcIntersections = false;
+    m_calcIntersectionsNaive = false;
+  }
+  // Calculate Intersections frame by frame in multi pair simulation
+  if (m_currentlyCalculatingIntersectionsNaive) {
+    if (m_naiveIterI != m_naiveIterJ) {
+      point pIntPoint;
+      if (m_physicalMultiPairSet.at(m_naiveIterI).intersects(m_physicalMultiPairSet.at(m_naiveIterJ), pIntPoint)) {
+        sf::CircleShape lIntPoint;
+        lIntPoint.setRadius(intersectionPointsRadius);
+        lIntPoint.setFillColor(sf::Color::Green);
+        updatePoint(lIntPoint, pIntPoint);
+        m_logicalMultiPairIntersectionPointsNaive.push_back(lIntPoint);
+        m_drawMultiPairIntersections = true;
+      }
+    }
+    m_naiveIterJ++;
+    if (m_naiveIterJ == m_multiPairSetSize) {
+      m_naiveIterJ = 0;
+      m_naiveIterI++;
+    }
+    if (m_naiveIterI == m_multiPairSetSize) m_currentlyCalculatingIntersectionsNaive = false;
+  }
+  // Calculate Intersections (Sweep Line Algorithm)
+  if (m_calcIntersectionsSweep) {
+    if (m_singlePairMode && !m_singlePairTrashed || !m_singlePairMode && !m_multiPairTrashed) {
+      m_physicalMultiPairIntersectionPointsSweep.clear();
+      m_logicalMultiPairIntersectionPointsSweep.clear();
+      // #############################################################################################
+    }
   }
   return;
 }
@@ -249,6 +329,9 @@ void euclidean_plane::render() {
   m_window.clear();
   m_window.draw(m_statisticsText);
   m_window.draw(m_simulationModeText);
+  m_window.draw(m_calculationModeText);
+  m_window.draw(m_updateModeText);
+  if(!m_singlePairMode) m_window.draw(m_multiPairSetSizeText);
   if (!m_hideAxis) {
     m_window.draw(m_xAxis);
     m_window.draw(m_yAxis);
@@ -278,7 +361,7 @@ void euclidean_plane::render() {
         m_window.draw(lineSegment);
       }
       if (m_drawMultiPairIntersections) {
-        for (sf::CircleShape intersectionPoint : m_logicalMultiPairIntersectionPoints) {
+        for (sf::CircleShape intersectionPoint : m_logicalMultiPairIntersectionPointsNaive) {
           m_window.draw(intersectionPoint);
         }
       }
@@ -289,23 +372,31 @@ void euclidean_plane::render() {
 }
 
 void euclidean_plane::handleUserInput(sf::Keyboard::Key key, bool isPressed) {
+  // Check while in Any mode
   if (key == sf::Keyboard::Escape && isPressed) m_exit = true;
   if (key == sf::Keyboard::Space && isPressed) m_genNewSetOfLines = true;
   if (key == sf::Keyboard::R && isPressed) m_reset = true;
-  if (key == sf::Keyboard::C && isPressed) m_calcIntersections = true;
-  if (key == sf::Keyboard::S && isPressed) m_sweep = true;
+  if (key == sf::Keyboard::C && isPressed) m_calcIntersectionsNaive = true;
+  if (key == sf::Keyboard::S && isPressed) m_calcIntersectionsSweep = true;
   if (key == sf::Keyboard::H && isPressed) m_toggleAxisHide = true;
   if (key == sf::Keyboard::T && isPressed) m_toggleSimulationMode = true;
   if (key == sf::Keyboard::E && isPressed) m_eraseCurrentSet = true;
+  if (key == sf::Keyboard::F && isPressed) m_toggleCalculationMode = true;
+  if (key == sf::Keyboard::Tilde && isPressed) m_toggleUpdateMode = true;
+  // Check only when in Multi Pair mode
+  if (!m_singlePairMode) {
+    if (key == sf::Keyboard::Up && isPressed) updateMultiPairSetSize(true);
+    if (key == sf::Keyboard::Down && isPressed) updateMultiPairSetSize(false);
+  }
   return;
 }
 
 void euclidean_plane::genNewLine(line_segment& physicalLine) {
   physicalLine.update(
-    m_distribution(m_generator),
-    m_distribution(m_generator),
-    m_distribution(m_generator),
-    m_distribution(m_generator)
+    (float)m_distribution(m_generator),
+    (float)m_distribution(m_generator),
+    (float)m_distribution(m_generator),
+    (float)m_distribution(m_generator)
   );
   return;
 }
@@ -355,17 +446,47 @@ void euclidean_plane::updateStatistics(sf::Time elapsedTime) {
   return;
 }
 
-void euclidean_plane::updateSimulationModeInfo() {
+void euclidean_plane::updateSimulationStateInfo() {
+  // Single/Multi pair mode
   if (m_singlePairMode) {
     m_simulationModeText.setString(singlePairModeText);
   } else {
     m_simulationModeText.setString(multiPairModeText);
   }
+  // Fancy/Fast calculation mode
+  if (m_fancyCalculationMode) {
+    m_calculationModeText.setString(fancyCalculationModeText);
+  } else {
+    m_calculationModeText.setString(fastCalculationModeText);
+  }
+  // Use/Disable update limit
+  if (m_useUpdateLimiter) {
+    m_updateModeText.setString(updateLimiterOnText);
+  } else {
+    m_updateModeText.setString(updateLimiterOffText);
+  }
+  // Multi Pair Set Size
+  m_multiPairSetSizeText.setString("Number of Line\nSegments: " + toString(m_multiPairSetSize));
+}
+
+void euclidean_plane::updateMultiPairSetSize(bool increase) {
+  if (increase) {
+    if (m_multiPairSetSize < multiPairSetSizeThreshold) {
+      m_multiPairSetSize++;
+      updateSimulationStateInfo();
+      m_genNewSetOfLines = true;
+    }
+  } else {
+    if (m_multiPairSetSize > 3) {
+      m_multiPairSetSize--;
+      updateSimulationStateInfo();
+      m_genNewSetOfLines = true;
+    }
+  }
 }
 
 float euclidean_plane::orientation(point a, point b, point c) {
   return (b.y - a.y) * (c.x - b.x) - (c.y - b.y) * (b.x - a.x);
-  //return (b.y - a.y) / (b.x - a.x) - (c.y - b.y) / (c.x - b.x);
 }
 
 template <typename T>
