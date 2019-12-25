@@ -33,16 +33,19 @@ euclidean_plane::euclidean_plane()
   , m_font{}, m_statisticsText{}
   , m_lineAText{}, m_lineApText{}, m_lineAqText{}, m_lineAslopeText{}
   , m_lineBText{}, m_lineBpText{}, m_lineBqText{}, m_lineBslopeText{}
-  , m_naiveIntersectionPointText{}, m_simulationModeText{}
+  , m_naiveIntersectionPointText{}, m_sweepIntersectionPointText{}, m_simulationModeText{}
   , m_calculationModeText{}, m_updateModeText{}, m_multiPairSetSizeText{}
+  , m_naiveIntersectionsHiddenText{}, m_sweepIntersectionsHiddenText{}
   , m_statisticsUpdateTime{}, m_statisticsNumFrames{ 0 }
   , m_genNewSetOfLines{ false }, m_reset{ false }, m_exit{ false }
   , m_calcIntersectionsNaive{ false }, m_calcIntersectionsSweep{ false }
   , m_toggleSimulationMode{ false }, m_toggleHide{ false }, m_eraseCurrentSet{ false }
   , m_toggleCalculationMode{ false }, m_toggleUpdateMode{ false }, m_toggleAdvancedInfo{ false }
+  , m_toggleNaiveIntersections{ false }, m_toggleSweepIntersections{ false }
   , m_drawSinglePairIntersectionNaive{ false }, m_drawSinglePairIntersectionSweep{ false }
   , m_drawMultiPairIntersectionsNaive{ false }, m_drawMultiPairIntersectionsSweep{ false }
   , m_hideAxis{ false }, m_hideBoundaries{ false }, m_hideAdvancedInfo{ false }
+  , m_hideNaiveIntersections{ false }, m_hideSweepIntersections{ false }
   , m_drawSinglePairSweepLine{ false }, m_drawMultiPairSweepLine{ false }
   , m_singlePairMode{ true }, m_singlePairTrashed{ true }, m_multiPairTrashed{ true }
   , m_fancyCalculationMode{ true }, m_useUpdateLimiter{ false }
@@ -88,10 +91,13 @@ euclidean_plane::euclidean_plane()
   m_lineBslopeText.setFont(m_font);
   m_lineByInterceptText.setFont(m_font);
   m_naiveIntersectionPointText.setFont(m_font);
+  m_sweepIntersectionPointText.setFont(m_font);
   m_simulationModeText.setFont(m_font);
   m_calculationModeText.setFont(m_font);
   m_updateModeText.setFont(m_font);
   m_multiPairSetSizeText.setFont(m_font);
+  m_naiveIntersectionsHiddenText.setFont(m_font);
+  m_sweepIntersectionsHiddenText.setFont(m_font);
 
   m_statisticsText.setPosition(5.f, 5.f);
   m_lineAText.setPosition(5.f, windowHeight - 70.f);
@@ -104,11 +110,14 @@ euclidean_plane::euclidean_plane()
   m_lineBqText.setPosition(260.f, windowHeight - 40.f);
   m_lineBslopeText.setPosition(420.f, windowHeight - 40.f);
   m_lineByInterceptText.setPosition(640.f, windowHeight - 40.f);
-  m_naiveIntersectionPointText.setPosition(5.f, yBias - fontSize);
+  m_naiveIntersectionPointText.setPosition(5.f, yBias - 40.f);
+  m_sweepIntersectionPointText.setPosition(windowWidth - 270.f, yBias - 40.f);
   m_simulationModeText.setPosition(windowWidth - 270.f, windowHeight - 70.f);
   m_calculationModeText.setPosition(windowWidth - 270.f, windowHeight - 40.f);
   m_updateModeText.setPosition(windowWidth - 270.f, 5.f);
-  m_multiPairSetSizeText.setPosition(windowWidth / 2 - 80.f, 5.f);
+  m_multiPairSetSizeText.setPosition(xBias - 80.f, 5.f);
+  m_naiveIntersectionsHiddenText.setPosition(5.f, yBias + 10.f);
+  m_sweepIntersectionsHiddenText.setPosition(windowWidth - 270.f, yBias + 10.f);
   
   m_statisticsText.setCharacterSize(fontSize);
   m_lineAText.setCharacterSize(fontSize);
@@ -122,16 +131,25 @@ euclidean_plane::euclidean_plane()
   m_lineBslopeText.setCharacterSize(fontSize);
   m_lineByInterceptText.setCharacterSize(fontSize);
   m_naiveIntersectionPointText.setCharacterSize(fontSize);
+  m_sweepIntersectionPointText.setCharacterSize(fontSize);
   m_simulationModeText.setCharacterSize(fontSize);
   m_calculationModeText.setCharacterSize(fontSize);
   m_updateModeText.setCharacterSize(fontSize);
   m_multiPairSetSizeText.setCharacterSize(fontSize);
+  m_naiveIntersectionsHiddenText.setCharacterSize(fontSize);
+  m_sweepIntersectionsHiddenText.setCharacterSize(fontSize);
 
   m_lineApText.setFillColor(sf::Color::Red);
   m_lineAqText.setFillColor(sf::Color::Yellow);
   m_lineBpText.setFillColor(sf::Color::Blue);
   m_lineBqText.setFillColor(sf::Color::Cyan);
   m_naiveIntersectionPointText.setFillColor(sf::Color::Green);
+  m_sweepIntersectionPointText.setFillColor(sf::Color::Magenta);
+  m_naiveIntersectionsHiddenText.setFillColor(sf::Color::Green);
+  m_sweepIntersectionsHiddenText.setFillColor(sf::Color::Magenta);
+
+  m_naiveIntersectionsHiddenText.setString("Naive Algorithm\nIntersections: Hidden");
+  m_sweepIntersectionsHiddenText.setString("Sweep Line Algorithm\nIntersections: Hidden");
 
   updateSimulationStateInfo();
 }
@@ -204,6 +222,16 @@ void euclidean_plane::update() {
   if (m_toggleAdvancedInfo) {
     m_hideAdvancedInfo = m_hideAdvancedInfo ? false : true; // show/hide advanced info
     m_toggleAdvancedInfo = false;
+  }
+  // toggle naive algorithm intersections on or off
+  if (m_toggleNaiveIntersections) {
+    m_hideNaiveIntersections = m_hideNaiveIntersections ? false : true;
+    m_toggleNaiveIntersections = false;
+  }
+  // toggle sweep line algorithm intersections on or off
+  if (m_toggleSweepIntersections) {
+    m_hideSweepIntersections = m_hideSweepIntersections ? false : true;
+    m_toggleSweepIntersections = false;
   }
   // 60 updates per second limit On/Off
   if (m_toggleUpdateMode) {
@@ -279,7 +307,7 @@ void euclidean_plane::update() {
         if (m_physicalLineA.intersects(m_physicalLineB, m_physicalIntersectionPointNaive)) {
           updatePoint(m_logicalIntersectionPointNaive, m_physicalIntersectionPointNaive);
           m_drawSinglePairIntersectionNaive = true;
-          updateIntersectionPointInfo();
+          updateNaiveIntersectionPointInfo();
         }
       }
     } else {
@@ -339,9 +367,14 @@ void euclidean_plane::update() {
         m_drawSinglePairIntersectionSweep = false;
         m_drawMultiPairSweepLine = false;
         if (m_fancyCalculationMode) {
-          //m_drawSinglePairIntersectionSweep = true;
+          // m_drawSinglePairIntersectionSweep = true;
           // this goes to the point where the sweep line actually finds the intersection point
           // (if there is one) BUT NOT HERE
+          // THIS IS TEMPORARY THIS IS TEMPORARY THIS IS TEMPORARY THIS IS TEMPORARY THIS IS TEMPORARY THIS IS TEMPORARY THIS IS TEMPORARY
+          m_physicalIntersectionPointSweep.update(0, 0); // TEMP TEST
+          m_drawSinglePairIntersectionSweep = true; // TEMP TEST
+          updateSweepIntersectionPointInfo(); // THIS GOES INSIDE THE SWEEP LINE CLASS WHEN IT IS NEEDED
+          // THIS IS TEMPORARY THIS IS TEMPORARY THIS IS TEMPORARY THIS IS TEMPORARY THIS IS TEMPORARY THIS IS TEMPORARY THIS IS TEMPORARY
           m_drawSinglePairSweepLine = true;
           m_currentlyCalculatingIntersectionsSweep = true;
         } else {
@@ -414,6 +447,8 @@ void euclidean_plane::render() {
     m_window.draw(m_rightBoundary);
     m_window.draw(m_botBoundary);
   }
+  if (m_hideNaiveIntersections) m_window.draw(m_naiveIntersectionsHiddenText);
+  if (m_hideSweepIntersections) m_window.draw(m_sweepIntersectionsHiddenText);
   if (m_singlePairMode) {
     if (!m_singlePairTrashed) {
       m_window.draw(m_logicalLineA);
@@ -429,12 +464,12 @@ void euclidean_plane::render() {
       m_window.draw(m_lineBslopeText);
       m_window.draw(m_lineByInterceptText);
       if (m_drawSinglePairIntersectionNaive) {
-        m_window.draw(m_logicalIntersectionPointNaive);
+        if (!m_hideNaiveIntersections) m_window.draw(m_logicalIntersectionPointNaive);
         m_window.draw(m_naiveIntersectionPointText);
       }
-      if (m_drawSinglePairIntersectionSweep) { // DON'T FORGET TO ACTIVATE IT
-        m_window.draw(m_logicalIntersectionPointSweep);
-        // m_window.draw(m_sweepIntersectionPointText);
+      if (m_drawSinglePairIntersectionSweep) {
+        if (!m_hideSweepIntersections) m_window.draw(m_logicalIntersectionPointSweep);
+        m_window.draw(m_sweepIntersectionPointText);
       }
       if (m_drawSinglePairSweepLine) {
         m_window.draw(m_logicalSweep);
@@ -448,14 +483,18 @@ void euclidean_plane::render() {
       }
       // draw all naive algorithm intersection points
       if (m_drawMultiPairIntersectionsNaive) {
-        for (sf::CircleShape intersectionPoint : m_logicalMultiPairIntersectionPointsNaive) {
-          m_window.draw(intersectionPoint);
+        if (!m_hideNaiveIntersections) {
+          for (sf::CircleShape intersectionPoint : m_logicalMultiPairIntersectionPointsNaive) {
+            m_window.draw(intersectionPoint);
+          }
         }
       }
       // draw all sweep line algorithm intersection points
       if (m_drawMultiPairIntersectionsSweep) {
-        for (sf::CircleShape intersectionPoint : m_logicalMultiPairIntersectionPointsSweep) {
-          m_window.draw(intersectionPoint);
+        if (!m_hideSweepIntersections) {
+          for (sf::CircleShape intersectionPoint : m_logicalMultiPairIntersectionPointsSweep) {
+            m_window.draw(intersectionPoint);
+          }
         }
       }
       // draw the sweep line
@@ -472,15 +511,17 @@ void euclidean_plane::handleUserInput(sf::Keyboard::Key key, bool isPressed) {
   // Check while in Any mode
   if (key == sf::Keyboard::Escape && isPressed) m_exit = true;
   if (key == sf::Keyboard::Space && isPressed) m_genNewSetOfLines = true;
-  if (key == sf::Keyboard::Tilde && isPressed) m_toggleUpdateMode = true;
-  if (key == sf::Keyboard::R && isPressed) m_reset = true;
-  if (key == sf::Keyboard::C && isPressed) m_calcIntersectionsNaive = true;
-  if (key == sf::Keyboard::S && isPressed) m_calcIntersectionsSweep = true;
-  if (key == sf::Keyboard::H && isPressed) m_toggleHide = true;
-  if (key == sf::Keyboard::T && isPressed) m_toggleSimulationMode = true;
+  if (key == sf::Keyboard::Q && isPressed) m_toggleUpdateMode = true;
+  if (key == sf::Keyboard::W && isPressed) m_toggleSimulationMode = true;
   if (key == sf::Keyboard::E && isPressed) m_eraseCurrentSet = true;
-  if (key == sf::Keyboard::F && isPressed) m_toggleCalculationMode = true;
+  if (key == sf::Keyboard::R && isPressed) m_reset = true;
   if (key == sf::Keyboard::A && isPressed) m_toggleAdvancedInfo = true;
+  if (key == sf::Keyboard::S && isPressed) m_calcIntersectionsSweep = true;
+  if (key == sf::Keyboard::D && isPressed) m_toggleHide = true;
+  if (key == sf::Keyboard::F && isPressed) m_toggleCalculationMode = true;
+  if (key == sf::Keyboard::Z && isPressed) m_toggleNaiveIntersections = true;
+  if (key == sf::Keyboard::X && isPressed) m_toggleSweepIntersections = true;
+  if (key == sf::Keyboard::C && isPressed) m_calcIntersectionsNaive = true;
   // Check only when in Multi Pair mode
   if (!m_singlePairMode) {
     if (key == sf::Keyboard::Up && isPressed) updateMultiPairSetSize(true);
@@ -530,8 +571,13 @@ void euclidean_plane::updateLinesInfo() {
   return;
 }
 
-void euclidean_plane::updateIntersectionPointInfo() {
+void euclidean_plane::updateNaiveIntersectionPointInfo() {
   m_naiveIntersectionPointText.setString("i(" + toString(m_physicalIntersectionPointNaive.x) + ", " + toString(m_physicalIntersectionPointNaive.y) + ")");
+  return;
+}
+
+void euclidean_plane::updateSweepIntersectionPointInfo() {
+  m_sweepIntersectionPointText.setString("i(" + toString(m_physicalIntersectionPointSweep.x) + ", " + toString(m_physicalIntersectionPointSweep.y) + ")");
   return;
 }
 

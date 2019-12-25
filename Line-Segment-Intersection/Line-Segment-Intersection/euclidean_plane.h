@@ -69,10 +69,13 @@ private:
   sf::Text m_lineBslopeText;
   sf::Text m_lineByInterceptText;
   sf::Text m_naiveIntersectionPointText;
+  sf::Text m_sweepIntersectionPointText;
   sf::Text m_simulationModeText;
   sf::Text m_calculationModeText;
   sf::Text m_updateModeText;
   sf::Text m_multiPairSetSizeText;
+  sf::Text m_naiveIntersectionsHiddenText;
+  sf::Text m_sweepIntersectionsHiddenText;
 
   // Statistics
   sf::Time m_statisticsUpdateTime;
@@ -89,23 +92,33 @@ private:
   bool m_toggleCalculationMode;
   bool m_toggleUpdateMode;
   bool m_toggleAdvancedInfo;
+  bool m_toggleNaiveIntersections;
+  bool m_toggleSweepIntersections;
 
   // States
   bool m_reset;
+
   bool m_hideAxis;
   bool m_hideBoundaries;
   bool m_hideAdvancedInfo;
+
+  bool m_hideNaiveIntersections;
+  bool m_hideSweepIntersections;
+
   bool m_drawSinglePairIntersectionNaive;
   bool m_drawSinglePairIntersectionSweep;
   bool m_drawMultiPairIntersectionsNaive;
   bool m_drawMultiPairIntersectionsSweep;
   bool m_drawSinglePairSweepLine;
   bool m_drawMultiPairSweepLine;
+
   bool m_singlePairMode;
   bool m_singlePairTrashed;
   bool m_multiPairTrashed;
+
   bool m_fancyCalculationMode;
   bool m_useUpdateLimiter;
+
   bool m_currentlyCalculatingIntersectionsNaive;
   bool m_currentlyCalculatingIntersectionsSweep;
 
@@ -135,7 +148,8 @@ private:
   void updateSweep(sf::VertexArray& logicalSweep, const sweep_line& physicalSweep);
   void updatePoint(sf::CircleShape& intersectionPoint, point& k);
   void updateLinesInfo();
-  void updateIntersectionPointInfo();
+  void updateNaiveIntersectionPointInfo();
+  void updateSweepIntersectionPointInfo();
   void updateStatistics(sf::Time elapsedTime);
   void updateSimulationStateInfo();
   void updateMultiPairSetSize(bool increase);
