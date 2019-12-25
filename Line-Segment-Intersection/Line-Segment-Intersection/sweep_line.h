@@ -8,7 +8,6 @@
 // Custom Headers
 #include "global.h"
 #include "line_segment.h"
-#include "euclidean_plane.h"
 
 // ### # #################################################################################### # ###
 
@@ -19,8 +18,10 @@ public:
 	~sweep_line();
 	// Member Functions
 	void reset();
+	void advance();
+	bool reachedEnd();
 	// Member Variables
 	line_segment sweep;
 private:
-
+	float step;
 };

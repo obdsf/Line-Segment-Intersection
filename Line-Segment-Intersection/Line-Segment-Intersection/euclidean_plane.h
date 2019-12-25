@@ -12,15 +12,17 @@
 // Custom Headers
 #include "point.h"
 #include "line_segment.h"
+#include "sweep_line.h"
 
 // ### # #################################################################################### # ###
 
 class euclidean_plane : private sf::NonCopyable {
 // ### # Class Member Variables # ###
 private:
-  // Other
+  // Window
   sf::RenderWindow m_window;
 
+  // Axis' & Boundaries
   sf::VertexArray m_xAxis;
   sf::VertexArray m_yAxis;
 
@@ -29,13 +31,16 @@ private:
   sf::VertexArray m_rightBoundary;
   sf::VertexArray m_botBoundary;
 
+  // Physical and Logical Lines and Intersection Points
   line_segment m_physicalLineA;
   line_segment m_physicalLineB;
-  point m_physicalIntersectionPoint;
+  point m_physicalIntersectionPointNaive;
+  point m_physicalIntersectionPointSweep;
 
   sf::VertexArray m_logicalLineA;
   sf::VertexArray m_logicalLineB;
-  sf::CircleShape m_logicalIntersectionPoint;
+  sf::CircleShape m_logicalIntersectionPointNaive;
+  sf::CircleShape m_logicalIntersectionPointSweep;
 
   std::vector<line_segment> m_physicalMultiPairSet;
   std::vector<point> m_physicalMultiPairIntersectionPointsNaive;
@@ -45,6 +50,11 @@ private:
   std::vector<sf::CircleShape> m_logicalMultiPairIntersectionPointsNaive;
   std::vector<sf::CircleShape> m_logicalMultiPairIntersectionPointsSweep;
 
+  // Sweep Line
+  sweep_line m_physicalSweep;
+  sf::VertexArray m_logicalSweep;
+
+  // Texts & Fonts
   sf::Font m_font;
 
   sf::Text m_statisticsText;
@@ -58,12 +68,13 @@ private:
   sf::Text m_lineBqText;
   sf::Text m_lineBslopeText;
   sf::Text m_lineByInterceptText;
-  sf::Text m_intersectionPointText;
+  sf::Text m_naiveIntersectionPointText;
   sf::Text m_simulationModeText;
   sf::Text m_calculationModeText;
   sf::Text m_updateModeText;
   sf::Text m_multiPairSetSizeText;
 
+  // Statistics
   sf::Time m_statisticsUpdateTime;
   std::size_t m_statisticsNumFrames;
 
@@ -88,6 +99,8 @@ private:
   bool m_drawSinglePairIntersectionSweep;
   bool m_drawMultiPairIntersectionsNaive;
   bool m_drawMultiPairIntersectionsSweep;
+  bool m_drawSinglePairSweepLine;
+  bool m_drawMultiPairSweepLine;
   bool m_singlePairMode;
   bool m_singlePairTrashed;
   bool m_multiPairTrashed;
@@ -119,6 +132,7 @@ private:
   void handleUserInput(sf::Keyboard::Key key, bool isPressed);
   void genNewLine(line_segment& physicalLine);
   void updateLine(sf::VertexArray& logicalLine, line_segment& physicalLine);
+  void updateSweep(sf::VertexArray& logicalSweep, const sweep_line& physicalSweep);
   void updatePoint(sf::CircleShape& intersectionPoint, point& k);
   void updateLinesInfo();
   void updateIntersectionPointInfo();
@@ -127,7 +141,4 @@ private:
   void updateMultiPairSetSize(bool increase);
 
   float orientation(point a, point b, point c);
-
-  template <typename T>
-  std::string toString(const T& value);
 };

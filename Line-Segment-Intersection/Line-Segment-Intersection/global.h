@@ -3,6 +3,8 @@
 // ### # #################################################################################### # ###
 
 // STL : Standard Template Library
+#include <iostream>
+#include <math.h>
 // Boost Library
 // SFML : Simple and Fast Multimedia Library
 #include <SFML/Graphics.hpp>
@@ -37,3 +39,15 @@ const point epbTopLeft{ leftMargin, topMargin };
 const point epbTopRight{ windowWidth - rightMargin, topMargin };
 const point epbBotRight{ windowWidth - rightMargin, windowHeight - bottomMargin };
 const point epbBotLeft{ leftMargin, windowHeight - bottomMargin };
+
+template <typename T>
+std::string toString(const T& value) {
+  std::stringstream stream;
+  stream << value;
+  return stream.str();
+}
+
+template <typename T>
+T truncOneDigit(const T& value) {
+  return (T)((int)(value * 10)) / 10;
+}
