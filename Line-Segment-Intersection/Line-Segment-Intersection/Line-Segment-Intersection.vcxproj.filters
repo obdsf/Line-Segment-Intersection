@@ -27,6 +27,9 @@
     <ClCompile Include="euclidean_plane.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="sweep_line.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="point.h">
@@ -36,6 +39,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="euclidean_plane.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="global.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sweep_line.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

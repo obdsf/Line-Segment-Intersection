@@ -131,11 +131,14 @@
     <ClCompile Include="line_segment.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="point.cpp" />
+    <ClCompile Include="sweep_line.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="euclidean_plane.h" />
+    <ClInclude Include="global.h" />
     <ClInclude Include="line_segment.h" />
     <ClInclude Include="point.h" />
+    <ClInclude Include="sweep_line.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

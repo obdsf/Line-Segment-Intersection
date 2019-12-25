@@ -10,6 +10,7 @@
 // SFML : Simple and Fast Multimedia Library
 #include <SFML/Graphics.hpp>
 // Custom Headers
+#include "point.h"
 #include "line_segment.h"
 
 // ### # #################################################################################### # ###
@@ -38,12 +39,21 @@ private:
   static const std::string fastCalculationModeText;
   static const std::string updateLimiterOnText;
   static const std::string updateLimiterOffText;
+  static const point epbTopLeft;
+  static const point epbTopRight;
+  static const point epbBotRight;
+  static const point epbBotLeft;
 
   // Other
   sf::RenderWindow m_window;
 
   sf::VertexArray m_xAxis;
   sf::VertexArray m_yAxis;
+
+  sf::VertexArray m_leftBoundary;
+  sf::VertexArray m_topBoundary;
+  sf::VertexArray m_rightBoundary;
+  sf::VertexArray m_botBoundary;
 
   line_segment m_physicalLineA;
   line_segment m_physicalLineB;
@@ -89,22 +99,28 @@ private:
   bool m_calcIntersectionsNaive;
   bool m_calcIntersectionsSweep;
   bool m_toggleSimulationMode;
-  bool m_toggleAxisHide;
+  bool m_toggleHide;
   bool m_eraseCurrentSet;
   bool m_toggleCalculationMode;
   bool m_toggleUpdateMode;
+  bool m_toggleAdvancedInfo;
 
   // States
   bool m_reset;
   bool m_hideAxis;
-  bool m_drawSinglePairIntersections;
-  bool m_drawMultiPairIntersections;
+  bool m_hideBoundaries;
+  bool m_hideAdvancedInfo;
+  bool m_drawSinglePairIntersectionNaive;
+  bool m_drawSinglePairIntersectionSweep;
+  bool m_drawMultiPairIntersectionsNaive;
+  bool m_drawMultiPairIntersectionsSweep;
   bool m_singlePairMode;
   bool m_singlePairTrashed;
   bool m_multiPairTrashed;
   bool m_fancyCalculationMode;
   bool m_useUpdateLimiter;
   bool m_currentlyCalculatingIntersectionsNaive;
+  bool m_currentlyCalculatingIntersectionsSweep;
 
   // Iterators
   int m_multiPairSetSize;

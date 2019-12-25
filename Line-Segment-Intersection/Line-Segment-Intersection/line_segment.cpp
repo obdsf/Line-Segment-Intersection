@@ -6,6 +6,7 @@
 // Boost Library
 // SFML : Simple and Fast Multimedia Library
 // Custom Headers
+#include "global.h"
 #include "point.h"
 #include "line_segment.h"
 
@@ -94,12 +95,12 @@ bool line_segment::eq(line_segment& l) {
 }
 
 float line_segment::calcSlope() {
-	if (p.x == q.x) return NULL;
+	//if (p.x == q.x) return INFINITY;
 	return (q.y - p.y) / (q.x - p.x);
 }
 
 float line_segment::calcYIntercept() {
-	if (slope == NULL) return NULL;
+	if (slope == INFINITY) return p.x;
 	return p.y - p.x * slope;
 }
 
@@ -121,7 +122,7 @@ bool line_segment::partially_contains(point& k) {
 bool line_segment::contains(point& k) {
 	if (partially_contains(k)) {
 		if (1) {
-			if (abs(((double)k.y - (double)slope * (double)k.x - (double)yIntercept)) <= 0.1) return true;
+			if (abs(((double)k.y - (double)slope * (double)k.x - (double)yIntercept)) <= g_precision) return true;
 			/* Without the cast there is a risk of arithmetic overflow (C26451)
 			 * If calculated value is too big and overflows the remainders
 			  * might be less than 0.5 and thus return true, falsely.
@@ -135,8 +136,17 @@ bool line_segment::contains(point& k) {
 
 bool line_segment::partially_intersects(line_segment& l, point& k) {
 	if (parallel(l)) return false;
-	float x = (l.yIntercept - yIntercept) / (slope - l.slope); // slope * x + yIntercept = l.slope * x + l.yIntercept => x * (slope - l.slope) = l.yIntercept - yIntercept => x = (l.yIntercept - yIntercept) / (slope - l.slope)
-	float y = x * slope + yIntercept;
+	float x, y;
+	if (slope == INFINITY) {
+		x = yIntercept;
+		y = x * l.slope + l.yIntercept;
+	} else if (l.slope == INFINITY) {
+		x = l.yIntercept;
+		y = x * slope + yIntercept;
+	} else {
+		x = (l.yIntercept - yIntercept) / (slope - l.slope); // slope * x + yIntercept = l.slope * x + l.yIntercept => x * (slope - l.slope) = l.yIntercept - yIntercept => x = (l.yIntercept - yIntercept) / (slope - l.slope)
+		y = x * slope + yIntercept;
+	}
 	k.update(x, y);
 	return true;
 }
