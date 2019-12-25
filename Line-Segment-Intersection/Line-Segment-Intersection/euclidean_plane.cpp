@@ -7,6 +7,7 @@
 #include <vector>
 // Boost Library
 // SFML : Simple and Fast Multimedia Library
+#include <SFML/Graphics.hpp>
 // Custom Headers
 #include "global.h"
 #include "point.h"
@@ -15,31 +16,7 @@
 
 // ### # #################################################################################### # ###
 
-const sf::Time euclidean_plane::timePerFrame = sf::seconds(1.f / 60.f);
-const int euclidean_plane::windowWidth{ 1200 };
-const int euclidean_plane::windowHeight{ 800 };
-const int euclidean_plane::topMargin{ 100 };
-const int euclidean_plane::bottomMargin{ 100 };
-const int euclidean_plane::rightMargin{ 300 };
-const int euclidean_plane::leftMargin{ 300 };
-const int euclidean_plane::xBias{ windowWidth / 2 };
-const int euclidean_plane::yBias{ windowHeight / 2 };
-const int euclidean_plane::distMin{ -300 };
-const int euclidean_plane::distMax{ 300 };
-const int euclidean_plane::fontSize{ 25 };
-const int euclidean_plane::intersectionPointsRadius{ 3 };
-const int euclidean_plane::multiPairSetSizeThreshold{ 100 };
-const std::string euclidean_plane::singlePairModeText{ "Single Pair Mode (SPM)" };
-const std::string euclidean_plane::multiPairModeText{ "Multi Pair Mode  (MPM)" };
-const std::string euclidean_plane::fancyCalculationModeText{ "Fancy" };
-const std::string euclidean_plane::fastCalculationModeText{ "Fast" };
-const std::string euclidean_plane::updateLimiterOnText{ "Update Limiter On" };
-const std::string euclidean_plane::updateLimiterOffText{ "Update Limiter Off" };
-const point euclidean_plane::epbTopLeft{ leftMargin, topMargin };
-const point euclidean_plane::epbTopRight{ windowWidth - rightMargin, topMargin };
-const point euclidean_plane::epbBotRight{ windowWidth - rightMargin, windowHeight - bottomMargin };
-const point euclidean_plane::epbBotLeft{ leftMargin, windowHeight - bottomMargin };
-
+// Constructors & Destructor
 euclidean_plane::euclidean_plane()
   : m_window(sf::VideoMode(windowWidth, windowHeight), "Line Segment Intersection Driver")
   , m_physicalLineA{ 0, 0, 1, 1 }, m_physicalLineB{ 0, 0, 1, 1 }, m_physicalIntersectionPoint{}

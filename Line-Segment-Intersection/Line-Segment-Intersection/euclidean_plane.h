@@ -18,32 +18,6 @@
 class euclidean_plane : private sf::NonCopyable {
 // ### # Class Member Variables # ###
 private:
-  // Static Variables
-  static const sf::Time timePerFrame;
-  static const int windowWidth;
-  static const int windowHeight;
-  static const int topMargin;
-  static const int bottomMargin;
-  static const int rightMargin;
-  static const int leftMargin;
-  static const int xBias;
-  static const int yBias;
-  static const int distMin;
-  static const int distMax;
-  static const int fontSize;
-  static const int intersectionPointsRadius;
-  static const int multiPairSetSizeThreshold;
-  static const std::string singlePairModeText;
-  static const std::string multiPairModeText;
-  static const std::string fancyCalculationModeText;
-  static const std::string fastCalculationModeText;
-  static const std::string updateLimiterOnText;
-  static const std::string updateLimiterOffText;
-  static const point epbTopLeft;
-  static const point epbTopRight;
-  static const point epbBotRight;
-  static const point epbBotLeft;
-
   // Other
   sf::RenderWindow m_window;
 

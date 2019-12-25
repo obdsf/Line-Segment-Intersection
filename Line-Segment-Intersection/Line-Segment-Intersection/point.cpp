@@ -11,14 +11,19 @@
 // ### # #################################################################################### # ###
 
 // Constructors & Destructor
-point::point(float x, float y)
+point::point(const float& x, const float& y)
 	:x{ x }, y{ y }
 {}
 
 point::~point() {}
 
 // Member Functions
-void point::update(float xVal, float yVal) {
+void point::update(const point& p) {
+	x = p.x;
+	y = p.y;
+}
+
+void point::update(const float& xVal, const float& yVal) {
 	x = xVal;
 	y = yVal;
 }
@@ -28,7 +33,7 @@ void point::print() {
 	return;
 }
 
-bool point::eq(point p) {
+bool point::eq(const point& p) {
 	if (x == p.x && y == p.y) return true;
 	return false;
 }

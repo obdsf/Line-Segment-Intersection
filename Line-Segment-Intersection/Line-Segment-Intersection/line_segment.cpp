@@ -13,68 +13,32 @@
 // ### # #################################################################################### # ###
 
 // Constructors & Destructor
-line_segment::line_segment(point& p, point& q)
+line_segment::line_segment(const point& p, const point& q)
 	:p{ p }, q{ q }, slope{ calcSlope() }, yIntercept{ calcYIntercept() }
 {
-	if (p.x > q.x) {
-		xMax = p.x;
-		xMin = q.x;
-	} else {
-		xMax = q.x;
-		xMin = p.x;
-	}
-	if (p.y > q.y) {
-		yMax = p.y;
-		yMin = q.y;
-	} else {
-		yMax = q.y;
-		yMin = p.y;
-	}
+	calcLineBoundaries(p.x, p.y, q.x, q.y);
 }
 
-line_segment::line_segment(float px, float py, float qx, float qy) {
-	p.update(px, py);
-	q.update(qx, qy);
-	slope = calcSlope();
-	yIntercept = calcYIntercept();
-	if (px > qx) {
-		xMax = px;
-		xMin = qx;
-	} else {
-		xMax = qx;
-		xMin = px;
-	}
-	if (py > qy) {
-		yMax = py;
-		yMin = qy;
-	} else {
-		yMax = qy;
-		yMin = py;
-	}
+line_segment::line_segment(const float& px, const float& py, const float& qx, const float& qy)
+	: p{ px, py }, q{ qx, qy }, slope{ calcSlope() }, yIntercept{ calcYIntercept() }
+{
+	calcLineBoundaries(px, py, qx, qy);
 }
 
 line_segment::~line_segment() {}
 
 // Member Functions
-void line_segment::update(float px, float py, float qx, float qy) {
+void line_segment::update(const point& pNew, const point& qNew) {
+	p.update(pNew);
+	q.update(qNew);
+}
+
+void line_segment::update(const float& px, const float& py, const float& qx, const float& qy) {
 	p.update(px, py);
 	q.update(qx, qy);
 	slope = calcSlope();
 	yIntercept = calcYIntercept();
-	if (p.x > q.x) {
-		xMax = p.x;
-		xMin = q.x;
-	} else {
-		xMax = q.x;
-		xMin = p.x;
-	}
-	if (p.y > q.y) {
-		yMax = p.y;
-		yMin = q.y;
-	} else {
-		yMax = q.y;
-		yMin = p.y;
-	}
+	calcLineBoundaries(px, py, qx, qy);
 	return;
 }
 
@@ -89,13 +53,12 @@ void line_segment::print() {
 	return;
 }
 
-bool line_segment::eq(line_segment& l) {
+bool line_segment::eq(const line_segment& l) {
 	if (p.eq(l.p) && q.eq(l.q) || q.eq(l.p) && p.eq(l.q)) return true;
 	return false;
 }
 
 float line_segment::calcSlope() {
-	//if (p.x == q.x) return INFINITY;
 	return (q.y - p.y) / (q.x - p.x);
 }
 
@@ -104,22 +67,22 @@ float line_segment::calcYIntercept() {
 	return p.y - p.x * slope;
 }
 
-bool line_segment::parallel(line_segment& l) {
+bool line_segment::parallel(const line_segment& l) {
 	if (slope == l.slope) return true;
 	return false;
 }
 
-bool line_segment::collinear(line_segment& l) {
+bool line_segment::collinear(const line_segment& l) {
 	if (parallel(l) && yIntercept == l.yIntercept) return true;
 	return false;
 }
 
-bool line_segment::partially_contains(point& k) {
+bool line_segment::partially_contains(const point& k) {
 	if (k.x <= xMax && k.x >= xMin && k.y <= yMax && k.y >= yMin) return true;
 	return false;
 }
 
-bool line_segment::contains(point& k) {
+bool line_segment::contains(const point& k) {
 	if (partially_contains(k)) {
 		if (1) {
 			if (abs(((double)k.y - (double)slope * (double)k.x - (double)yIntercept)) <= g_precision) return true;
@@ -134,7 +97,7 @@ bool line_segment::contains(point& k) {
 	return false;
 }
 
-bool line_segment::partially_intersects(line_segment& l, point& k) {
+bool line_segment::partially_intersects(const line_segment& l, point& k) {
 	if (parallel(l)) return false;
 	float x, y;
 	if (slope == INFINITY) {
@@ -156,4 +119,22 @@ bool line_segment::intersects(line_segment& l, point& k) {
 		if (contains(k) && l.contains(k)) return true;
 	}
 	return false;
+}
+
+void line_segment::calcLineBoundaries(const float& px, const float& py, const float& qx, const float& qy) {
+	if (px > qx) {
+		xMax = px;
+		xMin = qx;
+	} else {
+		xMax = qx;
+		xMin = px;
+	}
+	if (py > qy) {
+		yMax = py;
+		yMin = qy;
+	} else {
+		yMax = qy;
+		yMin = py;
+	}
+	return;
 }
