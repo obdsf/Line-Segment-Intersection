@@ -9,6 +9,8 @@
 
 // ### # #################################################################################### # ###
 
+class line_segment;
+
 class point {
 public:
 	// Constructors & Destructor
@@ -16,12 +18,14 @@ public:
 	~point();
 	// Member Functions
 	void update(const point& p);
-	void update(const float& xVal, const float& yVal);
+	void update(const float& x, const float& y);
 	void print();
 	bool eq(const point& p);
+	void setLineSeg(line_segment& newLineSeg);
 	// Member Variables
 	float x;
 	float y;
+	line_segment* lineSeg;
 
 private:
 

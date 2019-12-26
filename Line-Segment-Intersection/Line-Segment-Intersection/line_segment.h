@@ -17,7 +17,7 @@ public:
 	line_segment(const float& px, const float& py, const float& qx, const float& qy);
 	~line_segment();
 	// Member Functions
-	void update(const point& pNew, const point& qNew);
+	void update(const point& p, const point& q);
 	void update(const float& px, const float& py, const float& qx, const float& qy);
 	void print();
 	bool eq(const line_segment& l);

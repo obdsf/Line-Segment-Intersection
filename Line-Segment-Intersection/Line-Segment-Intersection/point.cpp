@@ -12,7 +12,7 @@
 
 // Constructors & Destructor
 point::point(const float& x, const float& y)
-	:x{ x }, y{ y }
+	:x{ x }, y{ y }, lineSeg{ nullptr }
 {}
 
 point::~point() {}
@@ -23,9 +23,9 @@ void point::update(const point& p) {
 	y = p.y;
 }
 
-void point::update(const float& xVal, const float& yVal) {
-	x = xVal;
-	y = yVal;
+void point::update(const float& x, const float& y) {
+	this->x = x;
+	this->y = y;
 }
 
 void point::print() {
@@ -36,4 +36,8 @@ void point::print() {
 bool point::eq(const point& p) {
 	if (x == p.x && y == p.y) return true;
 	return false;
+}
+
+void point::setLineSeg(line_segment& newLineSeg) {
+	lineSeg = &newLineSeg;
 }

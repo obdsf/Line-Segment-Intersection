@@ -15,6 +15,8 @@
 sweep_line::sweep_line()
   : sweep{ epbTopLeft, epbBotLeft }
   , step{ 2 * g_precision }
+  , start{ (int)epbTopLeft.x }
+  , end{ (int)epbTopRight.x }
 {}
 
 sweep_line::~sweep_line() {}
@@ -38,6 +40,15 @@ void sweep_line::advance() {
    * to even represent accurately
    * (https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html)
    */
+  return;
+}
+
+void sweep_line::advance(const float& position) {
+  if (position >= start && position <= end) {
+    sweep.p.x = position;
+    sweep.q.x = position;
+  }
+  return;
 }
 
 bool sweep_line::reachedEnd() {

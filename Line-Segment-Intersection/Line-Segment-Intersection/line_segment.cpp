@@ -17,25 +17,37 @@ line_segment::line_segment(const point& p, const point& q)
 	:p{ p }, q{ q }, slope{ calcSlope() }, yIntercept{ calcYIntercept() }
 {
 	calcLineBoundaries(p.x, p.y, q.x, q.y);
+	this->p.setLineSeg(*this);
+	this->q.setLineSeg(*this);
 }
 
 line_segment::line_segment(const float& px, const float& py, const float& qx, const float& qy)
 	: p{ px, py }, q{ qx, qy }, slope{ calcSlope() }, yIntercept{ calcYIntercept() }
 {
 	calcLineBoundaries(px, py, qx, qy);
+	p.setLineSeg(*this);
+	q.setLineSeg(*this);
 }
 
 line_segment::~line_segment() {}
 
 // Member Functions
-void line_segment::update(const point& pNew, const point& qNew) {
-	p.update(pNew);
-	q.update(qNew);
+void line_segment::update(const point& p, const point& q) {
+	this->p.update(p);
+	this->q.update(q);
+	this->p.setLineSeg(*this);
+	this->q.setLineSeg(*this);
+	slope = calcSlope();
+	yIntercept = calcYIntercept();
+	calcLineBoundaries(p.x, p.y, q.x, q.y);
+	return;
 }
 
 void line_segment::update(const float& px, const float& py, const float& qx, const float& qy) {
 	p.update(px, py);
 	q.update(qx, qy);
+	p.setLineSeg(*this);
+	q.setLineSeg(*this);
 	slope = calcSlope();
 	yIntercept = calcYIntercept();
 	calcLineBoundaries(px, py, qx, qy);

@@ -19,9 +19,12 @@ public:
 	// Member Functions
 	void reset();
 	void advance();
+	void advance(const float& position);
 	bool reachedEnd();
 	// Member Variables
 	line_segment sweep;
 private:
 	float step;
+	int start;
+	int end;
 };
