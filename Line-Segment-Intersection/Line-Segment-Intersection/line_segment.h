@@ -1,6 +1,5 @@
 #pragma once
-
-// ### # #################################################################################### # ###
+// # ### #################################################################################### ### #
 
 // STL : Standard Template Library
 // Boost Library
@@ -8,15 +7,17 @@
 // Custom Headers
 #include "point.h"
 
-// ### # #################################################################################### # ###
+// # ### #################################################################################### ### #
 
 class line_segment {
+// Constructors & Destructor
 public:
-	// Constructors & Destructor
 	line_segment(const point &p, const point &q);
 	line_segment(const float& px, const float& py, const float& qx, const float& qy);
 	~line_segment();
-	// Member Functions
+
+// Member Functions
+public:
 	void update(const point& p, const point& q);
 	void update(const float& px, const float& py, const float& qx, const float& qy);
 	void print();
@@ -27,19 +28,21 @@ public:
 	bool contains(const point& k);
 	bool partially_intersects(const line_segment& l, point& k);
 	bool intersects(line_segment& l, point& k);
-	// Member Variables
+private:
+	float calcSlope();
+	float calcYIntercept();
+	void calcEndPointsAndBoundaries();
+
+// Member Variables
+public:
 	point p;
 	point q;
+	point upperEndPoint;
+	point lowerEndPoint;
 	float slope;
 	float yIntercept;
 	float xMin;
 	float xMax;
 	float yMin;
 	float yMax;
-
-private:
-	// Member Functions
-	float calcSlope();
-	float calcYIntercept();
-	void calcLineBoundaries(const float& px, const float& py, const float& qx, const float& qy);
 };

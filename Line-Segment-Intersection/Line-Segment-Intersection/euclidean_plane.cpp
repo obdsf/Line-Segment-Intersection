@@ -1,5 +1,5 @@
 
-// ### # #################################################################################### # ###
+// # ### #################################################################################### ### #
 
 // STL : Standard Template Library
 #include <iostream>
@@ -14,7 +14,10 @@
 #include "line_segment.h"
 #include "euclidean_plane.h"
 
-// ### # #################################################################################### # ###
+#include "event_point.h"
+#include "event_queue.h"
+
+// # ### #################################################################################### ### #
 
 // Constructors & Destructor
 euclidean_plane::euclidean_plane()
@@ -42,6 +45,7 @@ euclidean_plane::euclidean_plane()
   , m_toggleSimulationMode{ false }, m_toggleHide{ false }, m_eraseCurrentSet{ false }
   , m_toggleCalculationMode{ false }, m_toggleUpdateMode{ false }, m_toggleAdvancedInfo{ false }
   , m_toggleNaiveIntersections{ false }, m_toggleSweepIntersections{ false }
+  , m_runTestCode{ false }
   , m_drawSinglePairIntersectionNaive{ false }, m_drawSinglePairIntersectionSweep{ false }
   , m_drawMultiPairIntersectionsNaive{ false }, m_drawMultiPairIntersectionsSweep{ false }
   , m_hideAxis{ false }, m_hideBoundaries{ false }, m_hideAdvancedInfo{ false }
@@ -155,9 +159,6 @@ euclidean_plane::euclidean_plane()
 }
 
 void euclidean_plane::run() {
-  // Test Zone Start
-
-  // Test Zone End
   sf::Clock clock;
   sf::Time timeSinceLastUpdate = sf::Time::Zero;
   while (m_window.isOpen()) {
@@ -425,6 +426,31 @@ void euclidean_plane::update() {
       if (m_drawMultiPairSweepLine) m_drawMultiPairSweepLine = false;
     }
   }
+
+  // # ### ############### ### #
+  // # ### Test Zone Start ### #
+  // # ### ############### ### #
+  if (m_runTestCode) {
+    system("CLS"); // clears the terminal
+    // ____________________________
+    // # ### Write Code Below ### #|
+    // \/\/\/\/\/\/\/\/\/\/\/\/\/\/|
+    event_queue Q{ m_physicalMultiPairSet };
+    Q.initialize();
+    int i = 0;
+    for (event_point p : Q.queue) {
+      std::cout << i++ << '\t';
+      p.p->print();
+    }
+    // /\/\/\/\/\/\/\/\/\/\/\/\/\/\|
+    // # ### Write Code Above ### #|
+    // ____________________________|
+    m_runTestCode = false;
+  }
+  // # ### ############### ### #
+  // # ###  Test Zone End  ### #
+  // # ### ############### ### #
+
   return;
 }
 
@@ -527,6 +553,8 @@ void euclidean_plane::handleUserInput(sf::Keyboard::Key key, bool isPressed) {
     if (key == sf::Keyboard::Up && isPressed) updateMultiPairSetSize(true);
     if (key == sf::Keyboard::Down && isPressed) updateMultiPairSetSize(false);
   }
+  // test code
+  if (key == sf::Keyboard::Numpad0) m_runTestCode = true;
   return;
 }
 

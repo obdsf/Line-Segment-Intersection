@@ -2,30 +2,24 @@
 // # ### #################################################################################### ### #
 
 // STL : Standard Template Library
+#include <vector>
 // Boost Library
 // SFML : Simple and Fast Multimedia Library
 // Custom Headers
+#include "point.h"
+#include "line_segment.h"
 
 // # ### #################################################################################### ### #
 
-class line_segment;
-
-class point {
+class event_point {
 public:
 	// Constructors & Destructor
-	point(const float& x = 0, const float& y = 0);
-	~point();
+	event_point(point& p, line_segment& line);
+	event_point(point& p);
+	~event_point();
 	// Member Functions
-	void update(const point& p);
-	void update(const float& x, const float& y);
-	void print();
-	bool eq(const point& p);
-	void setLineSeg(line_segment& newLineSeg);
+	void addLine(line_segment& line);
 	// Member Variables
-	float x;
-	float y;
-	line_segment* lineSeg;
-
-private:
-
+	point* p;
+	std::vector<line_segment*> lines;
 };

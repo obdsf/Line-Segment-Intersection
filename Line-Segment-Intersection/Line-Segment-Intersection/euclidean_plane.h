@@ -1,5 +1,5 @@
 #pragma once
-// ### # #################################################################################### # ###
+// # ### #################################################################################### ### #
 
 // STL : Standard Template Library
 #include <string>
@@ -14,10 +14,10 @@
 #include "line_segment.h"
 #include "sweep_line.h"
 
-// ### # #################################################################################### # ###
+// # ### #################################################################################### ### #
 
 class euclidean_plane : private sf::NonCopyable {
-// ### # Class Member Variables # ###
+// # ### Class Member Variables # ###
 private:
   // Window
   sf::RenderWindow m_window;
@@ -95,6 +95,8 @@ private:
   bool m_toggleNaiveIntersections;
   bool m_toggleSweepIntersections;
 
+  bool m_runTestCode;
+
   // States
   bool m_reset;
 
@@ -131,7 +133,7 @@ private:
   std::default_random_engine m_generator;
   std::uniform_int_distribution<int> m_distribution;
 
-// ### # Class Member Functions # ###
+// # ### Class Member Functions # ###
 public:
   euclidean_plane(); // Class Constructor
   void run(); // Window Main Loop

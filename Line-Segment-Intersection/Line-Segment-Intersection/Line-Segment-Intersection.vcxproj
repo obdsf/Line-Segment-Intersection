@@ -128,6 +128,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="euclidean_plane.cpp" />
+    <ClCompile Include="event_point.cpp" />
+    <ClCompile Include="event_queue.cpp" />
     <ClCompile Include="line_segment.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="point.cpp" />
@@ -135,6 +137,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="euclidean_plane.h" />
+    <ClInclude Include="event_point.h" />
+    <ClInclude Include="event_queue.h" />
     <ClInclude Include="global.h" />
     <ClInclude Include="line_segment.h" />
     <ClInclude Include="point.h" />

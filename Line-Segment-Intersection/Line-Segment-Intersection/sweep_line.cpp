@@ -1,5 +1,5 @@
 
-// ### # #################################################################################### # ###
+// # ### #################################################################################### ### #
 
 // STL : Standard Template Library
 #include <iostream>
@@ -9,26 +9,26 @@
 #include "global.h"
 #include "sweep_line.h"
 
-// ### # #################################################################################### # ###
+// # ### #################################################################################### ### #
 
 // Constructors & Destructor
 sweep_line::sweep_line()
-  : sweep{ epbTopLeft, epbBotLeft }
+  : sweep{ epbTopLeft, epbTopRight }
   , step{ 2 * g_precision }
-  , start{ (int)epbTopLeft.x }
-  , end{ (int)epbTopRight.x }
+  , start{ (int)epbTopLeft.y }
+  , end{ (int)epbBotLeft.y }
 {}
 
 sweep_line::~sweep_line() {}
 
 // Member Functions
 void sweep_line::reset() {
-  sweep.update(epbTopLeft, epbBotLeft);
+  sweep.update(epbTopLeft, epbTopRight);
 }
 
 void sweep_line::advance() {
-  sweep.p.x = truncOneDigit(sweep.p.x + step);
-  sweep.q.x = truncOneDigit(sweep.q.x + step);
+  sweep.p.y = truncOneDigit(sweep.p.y + step);
+  sweep.q.y = truncOneDigit(sweep.q.y + step);
   /* truncOneDigit function truncs every digit after the first decimal digit
    * just like trunc, there are cases of error due to how floating point
    * numbers operate (number 512.1 causes truncOneDigit to produce the same
@@ -45,13 +45,13 @@ void sweep_line::advance() {
 
 void sweep_line::advance(const float& position) {
   if (position >= start && position <= end) {
-    sweep.p.x = position;
-    sweep.q.x = position;
+    sweep.p.y = position;
+    sweep.q.y = position;
   }
   return;
 }
 
 bool sweep_line::reachedEnd() {
-  if (sweep.p.x > epbTopRight.x)return true;
+  if (sweep.p.y > epbBotLeft.y)return true;
   return false;
 }

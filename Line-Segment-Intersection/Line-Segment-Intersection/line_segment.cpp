@@ -1,5 +1,5 @@
 
-// ### # #################################################################################### # ###
+// # ### #################################################################################### ### #
 
 // STL : Standard Template Library
 #include <iostream>
@@ -10,13 +10,13 @@
 #include "point.h"
 #include "line_segment.h"
 
-// ### # #################################################################################### # ###
+// # ### #################################################################################### ### #
 
 // Constructors & Destructor
 line_segment::line_segment(const point& p, const point& q)
 	:p{ p }, q{ q }, slope{ calcSlope() }, yIntercept{ calcYIntercept() }
 {
-	calcLineBoundaries(p.x, p.y, q.x, q.y);
+	calcEndPointsAndBoundaries();
 	this->p.setLineSeg(*this);
 	this->q.setLineSeg(*this);
 }
@@ -24,7 +24,7 @@ line_segment::line_segment(const point& p, const point& q)
 line_segment::line_segment(const float& px, const float& py, const float& qx, const float& qy)
 	: p{ px, py }, q{ qx, qy }, slope{ calcSlope() }, yIntercept{ calcYIntercept() }
 {
-	calcLineBoundaries(px, py, qx, qy);
+	calcEndPointsAndBoundaries();
 	p.setLineSeg(*this);
 	q.setLineSeg(*this);
 }
@@ -39,7 +39,7 @@ void line_segment::update(const point& p, const point& q) {
 	this->q.setLineSeg(*this);
 	slope = calcSlope();
 	yIntercept = calcYIntercept();
-	calcLineBoundaries(p.x, p.y, q.x, q.y);
+	calcEndPointsAndBoundaries();
 	return;
 }
 
@@ -50,7 +50,7 @@ void line_segment::update(const float& px, const float& py, const float& qx, con
 	q.setLineSeg(*this);
 	slope = calcSlope();
 	yIntercept = calcYIntercept();
-	calcLineBoundaries(px, py, qx, qy);
+	calcEndPointsAndBoundaries();
 	return;
 }
 
@@ -90,21 +90,17 @@ bool line_segment::collinear(const line_segment& l) {
 }
 
 bool line_segment::partially_contains(const point& k) {
-	if (k.x <= xMax && k.x >= xMin && k.y <= yMax && k.y >= yMin) return true;
+	if (abs(((double)k.y - (double)slope * (double)k.x - (double)yIntercept)) <= g_precision) return true;
+	/* Without the cast there is a risk of arithmetic overflow (C26451)
+		* If calculated value is too big and overflows the remainders
+		* might be less than 0.5 and thus return true, falsely.
+		*/
 	return false;
 }
 
 bool line_segment::contains(const point& k) {
 	if (partially_contains(k)) {
-		if (1) {
-			if (abs(((double)k.y - (double)slope * (double)k.x - (double)yIntercept)) <= g_precision) return true;
-			/* Without the cast there is a risk of arithmetic overflow (C26451)
-			 * If calculated value is too big and overflows the remainders
-			  * might be less than 0.5 and thus return true, falsely.
-			 */
-		} else {
-			if(k.y == slope * k.x + yIntercept) return true;
-		}
+		if (k.x <= xMax && k.x >= xMin && k.y <= yMax && k.y >= yMin) return true;
 	}
 	return false;
 }
@@ -133,20 +129,35 @@ bool line_segment::intersects(line_segment& l, point& k) {
 	return false;
 }
 
-void line_segment::calcLineBoundaries(const float& px, const float& py, const float& qx, const float& qy) {
-	if (px > qx) {
-		xMax = px;
-		xMin = qx;
+void line_segment::calcEndPointsAndBoundaries() {
+	// calculate end points
+	if (slope == 0) {
+		if (p.x < q.x) {
+			upperEndPoint = p;
+			lowerEndPoint = q;
+		} else {
+			upperEndPoint = q;
+			lowerEndPoint = p;
+		}
 	} else {
-		xMax = qx;
-		xMin = px;
+		if (p.y > q.y) {
+			upperEndPoint = p;
+			lowerEndPoint = q;
+		} else {
+			upperEndPoint = q;
+			lowerEndPoint = p;
+		}
 	}
-	if (py > qy) {
-		yMax = py;
-		yMin = qy;
+	// calculate boundaries
+	if (p.x > q.x) {
+		xMax = p.x;
+		xMin = q.x;
 	} else {
-		yMax = qy;
-		yMin = py;
+		xMax = q.x;
+		xMin = p.x;
 	}
+	yMax = upperEndPoint.y;
+	yMin = lowerEndPoint.y;
+
 	return;
 }
