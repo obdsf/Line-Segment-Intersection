@@ -437,11 +437,16 @@ void euclidean_plane::update() {
     // \/\/\/\/\/\/\/\/\/\/\/\/\/\/|
     event_queue Q{ m_physicalMultiPairSet };
     Q.initialize();
-    int i = 0;
-    for (event_point p : Q.queue) {
-      std::cout << i++ << '\t';
-      p.p->print();
-    }
+    Q.printEventPointPositions();
+
+    point a{ 300, 300 };
+    event_point ep{ a };
+    Q.add(ep);
+    Q.printEventPointPositions();
+
+    Q.getNextEventPoint();
+    Q.printEventPointPositions();
+
     // /\/\/\/\/\/\/\/\/\/\/\/\/\/\|
     // # ### Write Code Above ### #|
     // ____________________________|

@@ -12,13 +12,18 @@
 // # ### #################################################################################### ### #
 
 class event_queue {
-public:
 	// Constructors & Destructor
+public:
 	event_queue(std::vector<line_segment>& lineSet);
 	~event_queue();
 	// Member Functions
+public:
 	void initialize();
+	void add(const event_point& intersectionEventPoint);
+	event_point getNextEventPoint();
+	void printEventPointPositions();
 	// Member Variables
+private:
 	std::vector<event_point> queue;
 	std::vector<line_segment>* lineSet;
 };
