@@ -21,5 +21,5 @@ public:
 	void addLine(line_segment& line);
 	// Member Variables
 	point* p;
-	std::vector<line_segment*> lines;
+	std::vector<line_segment*> linesU;
 };

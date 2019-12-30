@@ -11,20 +11,16 @@
 
 // # ### #################################################################################### ### #
 
-class event_queue {
+class status_structure {
 // Constructors & Destructor
 public:
-	event_queue(std::vector<line_segment>& lineSet);
-	~event_queue();
+	status_structure();
+	~status_structure();
 // Member Functions
-public:
-	void initialize();
-	void add(const event_point& intersectionEventPoint);
-	event_point getNextEventPoint();
-	void clear();
-	void printEventPointPositions();
+	void add(line_segment& lineSegToAdd);
+	void find(event_point& ep, std::vector<line_segment*>& linesL, std::vector<line_segment*>& linesC);
+
 // Member Variables
 private:
-	std::vector<event_point> m_queue;
-	std::vector<line_segment>* m_lineSet;
+	std::vector<line_segment*> m_status;
 };

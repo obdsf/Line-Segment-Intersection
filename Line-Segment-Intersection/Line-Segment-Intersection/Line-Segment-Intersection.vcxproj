@@ -133,6 +133,7 @@
     <ClCompile Include="line_segment.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="point.cpp" />
+    <ClCompile Include="status_structure.cpp" />
     <ClCompile Include="sweep_line.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -142,6 +143,7 @@
     <ClInclude Include="global.h" />
     <ClInclude Include="line_segment.h" />
     <ClInclude Include="point.h" />
+    <ClInclude Include="status_structure.h" />
     <ClInclude Include="sweep_line.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -70,15 +70,6 @@ bool line_segment::eq(const line_segment& l) {
 	return false;
 }
 
-float line_segment::calcSlope() {
-	return (q.y - p.y) / (q.x - p.x);
-}
-
-float line_segment::calcYIntercept() {
-	if (slope == INFINITY) return p.x;
-	return p.y - p.x * slope;
-}
-
 bool line_segment::parallel(const line_segment& l) {
 	if (slope == l.slope) return true;
 	return false;
@@ -127,6 +118,24 @@ bool line_segment::intersects(line_segment& l, point& k) {
 		if (contains(k) && l.contains(k)) return true;
 	}
 	return false;
+}
+
+float line_segment::solveForX(float y) {
+	if (slope == INFINITY) return p.x;
+	else return (y - yIntercept) / slope;
+}
+
+float line_segment::solveForY(float x) {
+	return slope * x + yIntercept;
+}
+
+float line_segment::calcSlope() {
+	return (q.y - p.y) / (q.x - p.x);
+}
+
+float line_segment::calcYIntercept() {
+	if (slope == INFINITY) return p.x;
+	return p.y - p.x * slope;
 }
 
 void line_segment::calcEndPointsAndBoundaries() {

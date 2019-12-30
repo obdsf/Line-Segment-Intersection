@@ -28,6 +28,8 @@ public:
 	bool contains(const point& k);
 	bool partially_intersects(const line_segment& l, point& k);
 	bool intersects(line_segment& l, point& k);
+	float solveForX(float y);
+	float solveForY(float x);
 private:
 	float calcSlope();
 	float calcYIntercept();
