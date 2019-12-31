@@ -2,6 +2,7 @@
 // # ### #################################################################################### ### #
 
 // STL : Standard Template Library
+#include <string>
 // Boost Library
 // SFML : Simple and Fast Multimedia Library
 // Custom Headers
@@ -30,6 +31,7 @@ public:
 	bool intersects(line_segment& l, point& k);
 	float solveForX(float y);
 	float solveForY(float x);
+	void resetID();
 private:
 	float calcSlope();
 	float calcYIntercept();
@@ -47,4 +49,6 @@ public:
 	float xMax;
 	float yMin;
 	float yMax;
+	std::string name;
+	static unsigned int uniqueID;
 };

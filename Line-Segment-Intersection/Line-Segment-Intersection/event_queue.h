@@ -22,7 +22,7 @@ public:
 	void add(const event_point& intersectionEventPoint);
 	event_point getNextEventPoint();
 	void clear();
-	void printEventPointPositions();
+	void print();
 // Member Variables
 private:
 	std::vector<event_point> m_queue;

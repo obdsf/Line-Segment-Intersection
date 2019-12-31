@@ -2,13 +2,15 @@
 // # ### #################################################################################### ### #
 
 // STL : Standard Template Library
-#include <iostream>
 #include <iterator>
 #include <vector>
+#include <iostream>
 // Boost Library
 // SFML : Simple and Fast Multimedia Library
 // Custom Headers
 #include "status_structure.h"
+#include "event_point.h"
+#include "line_segment.h"
 
 // # ### #################################################################################### ### #
 
@@ -47,4 +49,15 @@ void status_structure::find(event_point& ep, std::vector<line_segment*>& linesL,
     else if (consecutiveLinesChainBroke) break;
   }
   return;
+}
+
+void status_structure::print() {
+  int i{ 0 };
+  std::cout << "___________________________________________________________________________________________________\n";
+  for (line_segment* lineSeg : m_status) {
+    std::cout << "\t[" << lineSeg->name << ']';
+    if ((++i) % 10 == 0) std::cout << "\n\n";
+  }
+  if ((i) % 10 != 0) std::cout << "\n\n";
+  std::cout << m_status.size() << "\n\n";
 }

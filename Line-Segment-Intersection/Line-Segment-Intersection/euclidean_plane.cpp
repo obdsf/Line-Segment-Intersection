@@ -16,6 +16,7 @@
 
 #include "event_point.h"
 #include "event_queue.h"
+#include "status_structure.h"
 
 // # ### #################################################################################### ### #
 
@@ -266,6 +267,7 @@ void euclidean_plane::update() {
   }
   // Generate New Set of Lines
   if (m_genNewSetOfLines) {
+    m_physicalLineA.resetID(); // reset unique ids
     if (m_singlePairMode) {
       genNewLine(m_physicalLineA);
       genNewLine(m_physicalLineB);
@@ -437,16 +439,23 @@ void euclidean_plane::update() {
     // \/\/\/\/\/\/\/\/\/\/\/\/\/\/|
     event_queue Q{ m_physicalMultiPairSet };
     Q.initialize();
-    Q.printEventPointPositions();
+    Q.print();
 
     point a{ 300, 300 };
     event_point ep{ a };
     Q.add(ep);
-    Q.printEventPointPositions();
+    Q.print();
 
     Q.getNextEventPoint();
-    Q.printEventPointPositions();
+    Q.print();
 
+    status_structure T{};
+    T.add(m_physicalMultiPairSet.at(0));
+    T.add(m_physicalMultiPairSet.at(1));
+    T.add(m_physicalMultiPairSet.at(2));
+    T.add(m_physicalMultiPairSet.at(3));
+    T.add(m_physicalMultiPairSet.at(4));
+    T.print();
     // /\/\/\/\/\/\/\/\/\/\/\/\/\/\|
     // # ### Write Code Above ### #|
     // ____________________________|
@@ -455,7 +464,6 @@ void euclidean_plane::update() {
   // # ### ############### ### #
   // # ###  Test Zone End  ### #
   // # ### ############### ### #
-
   return;
 }
 

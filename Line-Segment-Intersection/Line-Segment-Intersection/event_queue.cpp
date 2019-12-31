@@ -77,12 +77,13 @@ void event_queue::clear() {
   return;
 }
 
-void event_queue::printEventPointPositions() {
+void event_queue::print() {
   int i{ 0 };
+  std::cout << "___________________________________________________________________________________________________\n";
   for (event_point p : m_queue) {
-    std::cout << "\t[" << p.p->y << "]";
+    std::cout << "\t[" << p.p->y << ']';
     if ((++i) % 10 == 0) std::cout << "\n\n";
   }
   if ((i) % 10 != 0) std::cout << "\n\n";
-  std::cout << m_queue.size() << '\n';
+  std::cout << m_queue.size() << "\n\n";
 }

@@ -12,9 +12,12 @@
 
 // # ### #################################################################################### ### #
 
+unsigned int line_segment::uniqueID{ 0 };
+
 // Constructors & Destructor
 line_segment::line_segment(const point& p, const point& q)
-	:p{ p }, q{ q }, slope{ calcSlope() }, yIntercept{ calcYIntercept() }
+	: p{ p }, q{ q }, slope{ calcSlope() }, yIntercept{ calcYIntercept() }
+	, name{ "ls" + std::to_string(uniqueID++) }
 {
 	calcEndPointsAndBoundaries();
 	this->p.setLineSeg(*this);
@@ -23,6 +26,7 @@ line_segment::line_segment(const point& p, const point& q)
 
 line_segment::line_segment(const float& px, const float& py, const float& qx, const float& qy)
 	: p{ px, py }, q{ qx, qy }, slope{ calcSlope() }, yIntercept{ calcYIntercept() }
+	, name{ "ls" + std::to_string(uniqueID++) }
 {
 	calcEndPointsAndBoundaries();
 	p.setLineSeg(*this);
@@ -168,5 +172,10 @@ void line_segment::calcEndPointsAndBoundaries() {
 	yMax = upperEndPoint.y;
 	yMin = lowerEndPoint.y;
 
+	return;
+}
+
+void line_segment::resetID() {
+	uniqueID = 0;
 	return;
 }
