@@ -51,6 +51,56 @@ void status_structure::find(event_point& ep, std::vector<line_segment*>& linesL,
   return;
 }
 
+void status_structure::erase(std::vector<line_segment*>& linesL, std::vector<line_segment*>& linesC) {
+  if (linesL.empty() && linesC.empty()) return;
+  bool checkForL{ false };
+  bool checkForC{ false };
+  line_segment* firstLineL;
+  line_segment* firstLineC;
+  int posL{ -1 };
+  int posC{ -1 };
+  if (!linesL.empty()) {
+    checkForL = true;
+    firstLineL = linesL.front();
+  }
+  if (!linesC.empty()) {
+    checkForC = true;
+    firstLineC = linesC.front();
+  }
+  for (line_segment* lineSeg : m_status) {
+    if (checkForL) {
+      posL++;
+      if (lineSeg->name == firstLineL->name) checkForL = false;
+    }
+    if (checkForC) {
+      posC++;
+      if (lineSeg->name == firstLineC->name) checkForC = false;
+    }
+    if (!checkForL && !checkForC) break;
+  }
+  if (posL > -1) {
+    auto first{ m_status.begin() + posL };
+    auto last{ first + m_status.size() };
+    m_status.erase(first, last);
+  }
+  if (posC > -1) {
+    auto first{ m_status.begin() + posC };
+    auto last{ first + m_status.size() };
+    m_status.erase(first, last);
+  }
+  return;
+}
+
+bool status_structure::isEmpty() {
+  if (m_status.empty()) return true;
+  return false;
+}
+
+void status_structure::clear() {
+  m_status.clear();
+  return;
+}
+
 void status_structure::print() {
   int i{ 0 };
   std::cout << "___________________________________________________________________________________________________\n";

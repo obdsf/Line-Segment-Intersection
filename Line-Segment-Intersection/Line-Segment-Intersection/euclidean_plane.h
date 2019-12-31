@@ -34,6 +34,7 @@ private:
   // Physical and Logical Lines and Intersection Points
   line_segment m_physicalLineA;
   line_segment m_physicalLineB;
+  std::vector<line_segment> m_physicalSinglePairSet;
   point m_physicalIntersectionPointNaive;
   point m_physicalIntersectionPointSweep;
 

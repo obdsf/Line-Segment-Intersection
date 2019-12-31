@@ -72,8 +72,23 @@ event_point event_queue::getNextEventPoint() {
   return nextEventPoint;
 }
 
+float event_queue::nextEventPointPosition() {
+  if (m_queue.empty()) return NULL;
+  else return m_queue.back().p->y;
+}
+
+bool event_queue::isEmpty() {
+  if (m_queue.empty()) return true;
+  return false;
+}
+
 void event_queue::clear() {
   m_queue.clear();
+  return;
+}
+
+void event_queue::changeSet(std::vector<line_segment>& lineSet) {
+  m_lineSet = &lineSet;
   return;
 }
 

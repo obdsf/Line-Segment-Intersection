@@ -19,6 +19,9 @@ public:
 // Member Functions
 	void add(line_segment& lineSegToAdd);
 	void find(event_point& ep, std::vector<line_segment*>& linesL, std::vector<line_segment*>& linesC);
+	void erase(std::vector<line_segment*>& linesL, std::vector<line_segment*>& linesC);
+	bool isEmpty();
+	void clear();
 	void print();
 // Member Variables
 private:

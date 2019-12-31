@@ -21,7 +21,10 @@ public:
 	void initialize();
 	void add(const event_point& intersectionEventPoint);
 	event_point getNextEventPoint();
+	float nextEventPointPosition();
+	bool isEmpty();
 	void clear();
+	void changeSet(std::vector<line_segment>& lineSet);
 	void print();
 // Member Variables
 private:

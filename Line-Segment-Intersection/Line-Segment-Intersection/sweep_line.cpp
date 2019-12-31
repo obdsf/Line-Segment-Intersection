@@ -12,8 +12,9 @@
 // # ### #################################################################################### ### #
 
 // Constructors & Destructor
-sweep_line::sweep_line()
+sweep_line::sweep_line(std::vector<line_segment>& lineSet)
   : sweep{ epbTopLeft, epbTopRight }
+  , Q{ lineSet }, T{}
   , step{ 2 * g_precision }
   , start{ (int)epbTopLeft.y }
   , end{ (int)epbBotLeft.y }
@@ -54,4 +55,21 @@ void sweep_line::advance(const float& position) {
 bool sweep_line::reachedEnd() {
   if (sweep.p.y > epbBotLeft.y)return true;
   return false;
+}
+
+void sweep_line::handleEventPoint(event_point ep) {
+  std::vector<line_segment*> linesL;
+  std::vector<line_segment*> linesC;
+  T.find(ep, linesL, linesC);
+  bool epIsIntersectionPoint{ false };
+  if (ep.linesU.size() + linesL.size() + linesC.size() > 1) {
+    epIsIntersectionPoint = true;
+    // REPORT ep.p AS AN INTERSECTION
+  }
+
+}
+
+void sweep_line::changeQueueSet(std::vector<line_segment>& lineSet) {
+  Q.changeSet(lineSet);
+  return;
 }

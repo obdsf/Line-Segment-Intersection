@@ -24,6 +24,7 @@
 euclidean_plane::euclidean_plane()
   : m_window(sf::VideoMode(windowWidth, windowHeight), "Line Segment Intersection Driver")
   , m_physicalLineA{ 0, 0, 1, 1 }, m_physicalLineB{ 0, 0, 1, 1 }
+  , m_physicalSinglePairSet{ &m_physicalLineA, &m_physicalLineB }
   , m_physicalIntersectionPointNaive{}, m_physicalIntersectionPointSweep{}
   , m_xAxis{ sf::Lines, 2 }, m_yAxis{ sf::Lines, 2 }
   , m_leftBoundary{ sf::Lines, 2 }, m_topBoundary{ sf::Lines, 2 }
@@ -33,7 +34,7 @@ euclidean_plane::euclidean_plane()
   , m_physicalMultiPairSet{}, m_logicalMultiPairSet{}
   , m_physicalMultiPairIntersectionPointsNaive{}, m_physicalMultiPairIntersectionPointsSweep{}
   , m_logicalMultiPairIntersectionPointsNaive{}, m_logicalMultiPairIntersectionPointsSweep{}
-  , m_physicalSweep{}, m_logicalSweep{ sf::Lines, 2 }
+  , m_physicalSweep{ m_physicalMultiPairSet }, m_logicalSweep{ sf::Lines, 2 }
   , m_font{}, m_statisticsText{}
   , m_lineAText{}, m_lineApText{}, m_lineAqText{}, m_lineAslopeText{}
   , m_lineBText{}, m_lineBpText{}, m_lineBqText{}, m_lineBslopeText{}
