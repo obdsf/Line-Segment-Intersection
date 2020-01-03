@@ -17,7 +17,7 @@ public:
 	status_structure();
 	~status_structure();
 // Member Functions
-	void add(line_segment& lineSegToAdd);
+	void add(line_segment& lineSegToAdd, bool useMinorStep = false);
 	void find(event_point& ep, std::vector<line_segment*>& linesL, std::vector<line_segment*>& linesC);
 	void erase(std::vector<line_segment*>& linesL, std::vector<line_segment*>& linesC);
 	bool isEmpty();

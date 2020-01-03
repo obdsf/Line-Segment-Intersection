@@ -8,6 +8,7 @@
 // Boost Library
 // SFML : Simple and Fast Multimedia Library
 // Custom Headers
+#include "global.h"
 #include "status_structure.h"
 #include "event_point.h"
 #include "line_segment.h"
@@ -22,10 +23,12 @@ status_structure::status_structure()
 status_structure::~status_structure() {}
 
 // Member Functions
-void status_structure::add(line_segment& lineSegToAdd) {
+void status_structure::add(line_segment& lineSegToAdd, bool useMinorStep) {
+  float yValue{ lineSegToAdd.upperEndPoint.y };
+  if (useMinorStep) yValue -= g_precision / 2;
   auto it = m_status.begin();
   for (line_segment* lineSeg : m_status) {
-    if (lineSegToAdd.upperEndPoint.x < lineSeg->solveForX(lineSegToAdd.upperEndPoint.y)) break;
+    if (lineSegToAdd.upperEndPoint.x < lineSeg->solveForX(yValue)) break;
     it++;
   }
   m_status.insert(it, &lineSegToAdd);

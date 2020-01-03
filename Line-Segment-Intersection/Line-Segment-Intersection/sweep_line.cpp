@@ -66,7 +66,7 @@ void sweep_line::handleEventPoint(event_point ep) {
     epIsIntersectionPoint = true;
     // REPORT ep.p AS AN INTERSECTION
   }
-
+  
 }
 
 void sweep_line::changeQueueSet(std::vector<line_segment>& lineSet) {
