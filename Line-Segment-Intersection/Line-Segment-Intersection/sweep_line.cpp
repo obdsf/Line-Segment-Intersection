@@ -12,12 +12,12 @@
 // # ### #################################################################################### ### #
 
 // Constructors & Destructor
-sweep_line::sweep_line(std::vector<line_segment>& lineSet)
+sweep_line::sweep_line()
   : sweep{ epbTopLeft, epbTopRight }
-  , Q{ lineSet }, T{}
-  , step{ 2 * g_precision }
-  , start{ (int)epbTopLeft.y }
-  , end{ (int)epbBotLeft.y }
+  , Q{}, T{}, m_intersectionPointSet{}
+  , m_step{ 2 * g_precision }
+  , m_start{ (int)epbTopLeft.y }
+  , m_end{ (int)epbBotLeft.y }
 {}
 
 sweep_line::~sweep_line() {}
@@ -28,24 +28,24 @@ void sweep_line::reset() {
 }
 
 void sweep_line::advance() {
-  sweep.p.y = truncOneDigit(sweep.p.y + step);
-  sweep.q.y = truncOneDigit(sweep.q.y + step);
+  sweep.p.y = truncOneDigit(sweep.p.y + m_step);
+  sweep.q.y = truncOneDigit(sweep.q.y + m_step);
   /* truncOneDigit function truncs every digit after the first decimal digit
    * just like trunc, there are cases of error due to how floating point
    * numbers operate (number 512.1 causes truncOneDigit to produce the same
-   * result, when we start counting from 300 with step equal to 0.1, in our
-   * case with step equal to 0.2 and the same starting point we are bound to
-   * hit the same wall somewhere above 1000, but that never happens since we
-   * stop at 900).
-   * floating point numbers are impossible to trunc because they're impossible
-   * to even represent accurately
+   * result -in our case error- when we start counting from 300 with step
+   * equal to 0.1, in our case with step equal to 0.2 and the same starting
+   * point we are bound to hit the same wall somewhere above 1000, but that
+   * never happens since we stop at 900).
+   * floating point numbers are impossible to trunc because they're
+   * impossible to even represent accurately
    * (https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html)
    */
   return;
 }
 
 void sweep_line::advance(const float& position) {
-  if (position >= start && position <= end) {
+  if (position >= m_start && position <= m_end) {
     sweep.p.y = position;
     sweep.q.y = position;
   }
@@ -57,19 +57,56 @@ bool sweep_line::reachedEnd() {
   return false;
 }
 
-void sweep_line::handleEventPoint(event_point ep) {
-  std::vector<line_segment*> linesL;
-  std::vector<line_segment*> linesC;
-  T.find(ep, linesL, linesC);
+bool sweep_line::handleEventPoint(event_point ep, point* intersectionPoint) {
+  /* "Let U(p) be the set of segments whose upper endpoint is p; these segments
+   *  are stored with the event point p. (For horizontal segments, the upper
+   *  endpoint is by definition the left endpoint.)"
+   */
+  std::vector<line_segment*> linesL; // "Let L(p) denote the subset of segments found whose lower endpoint is p"
+  std::vector<line_segment*> linesC; // "Let C(p) denote the subset of segments found that contain p in their interior"
+  T.find(linesL, linesC, ep); // "Find all segments stored in T that contain p;"
   bool epIsIntersectionPoint{ false };
-  if (ep.linesU.size() + linesL.size() + linesC.size() > 1) {
-    epIsIntersectionPoint = true;
-    // REPORT ep.p AS AN INTERSECTION
+  if (ep.linesU.size() + linesL.size() + linesC.size() > 1) { // "If the union of L(p), U(p) and C(p) contains more than one segment"
+    epIsIntersectionPoint = true; // "then report p as an intersection"
+    intersectionPoint = ep.p;
+
+    std::cout << "test"; // test
+    ep.p->print(); // test
   }
-  
+  T.erase(linesL, linesC); // "Delete the segments in the union of L(p) and C(p) from T"
+  for (line_segment* lineSeg : ep.linesU) { // "Insert the segments in U(p) into T"
+    T.add(lineSeg);
+  }
+  for (line_segment* lineSeg : linesC) { // "Insert the segments in C(p) into T"
+    T.add(lineSeg);
+  } // "Deleting and re-inserting the segments of C(p) reverses their order"
+  if (ep.linesU.empty() && linesC.empty()) {
+    line_segment* leftSeg{};
+    line_segment* rightSeg{};
+    T.findAdjacentSegments(leftSeg, rightSeg, ep); // "Let sl and sr be the left and right neighbors of p in T"
+    // "FINDNEWEVENT(sl,sr, p)"
+  } else {
+    line_segment* leftSeg{};
+    line_segment* leftmostSeg{};
+    line_segment* rightmostSeg{};
+    line_segment* rightSeg{};
+    T.findBoundariesOfUnion(leftSeg, leftmostSeg, rightmostSeg, rightSeg, ep.linesU, linesC);
+    /* "Let s' be the leftmost segment of union U(p), C(p) in T
+     *  Let sl be the left neighbor of s' in T
+     *  Let s'' be the rightmost segment of union U(p), C(p) in T
+     *  Let sr be the right neighbor of s'' in T"
+     */
+    // "FINDNEWEVENT(sl, s', p)"
+    // "FINDNEWEVENT(s'', sr, p)"
+  }
 }
 
 void sweep_line::changeQueueSet(std::vector<line_segment>& lineSet) {
   Q.changeSet(lineSet);
+  return;
+}
+
+void sweep_line::changeIntersectionPointSet(std::vector<point>& intersectionPointSet) {
+  m_intersectionPointSet = &intersectionPointSet;
   return;
 }

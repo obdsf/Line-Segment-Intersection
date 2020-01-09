@@ -6,6 +6,7 @@
 // SFML : Simple and Fast Multimedia Library
 // Custom Headers
 #include "global.h"
+#include "point.h"
 #include "line_segment.h"
 #include "event_queue.h"
 #include "status_structure.h"
@@ -13,23 +14,27 @@
 // # ### #################################################################################### ### #
 
 class sweep_line {
+// Constructors & Destructor
 public:
-	// Constructors & Destructor
-	sweep_line(std::vector<line_segment>& lineSet);
+	sweep_line();
 	~sweep_line();
-	// Member Functions
+// Member Functions
+public:
 	void reset();
 	void advance();
 	void advance(const float& position);
 	bool reachedEnd();
-	void handleEventPoint(event_point ep);
+	bool handleEventPoint(event_point ep, point* intersectionPoint);
 	void changeQueueSet(std::vector<line_segment>& lineSet);
-	// Member Variables
+	void changeIntersectionPointSet(std::vector<point>& intersectionPointSet);
+// Member Variables
+public:
 	line_segment sweep;
 	event_queue Q;
 	status_structure T;
 private:
-	float step;
-	int start;
-	int end;
+	std::vector<point>* m_intersectionPointSet;
+	float m_step;
+	int m_start;
+	int m_end;
 };

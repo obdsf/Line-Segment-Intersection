@@ -119,6 +119,7 @@ private:
   bool m_singlePairTrashed;
   bool m_multiPairTrashed;
 
+  bool m_lastSweptSinglePair;
   bool m_fancyCalculationMode;
   bool m_useUpdateLimiter;
 

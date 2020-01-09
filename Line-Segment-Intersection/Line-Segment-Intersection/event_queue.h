@@ -14,7 +14,7 @@
 class event_queue {
 // Constructors & Destructor
 public:
-	event_queue(std::vector<line_segment>& lineSet);
+	event_queue();
 	~event_queue();
 // Member Functions
 public:

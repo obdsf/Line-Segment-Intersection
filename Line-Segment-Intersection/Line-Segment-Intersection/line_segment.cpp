@@ -126,6 +126,14 @@ bool line_segment::intersects(line_segment& l, point& k) {
 
 float line_segment::solveForX(float y) {
 	if (slope == INFINITY) return p.x;
+	else if (slope == 0) return INT_MAX;
+	/* returning NULL is technically the right choice since mathematically
+	 * it is impossible to determine the x of a horizontal line, given a y
+	 * but returning any value above distMax saves us one check in the add
+	 * function of the status_structure class since all horizontal line
+	 * segments in a given y must be placed last
+	 * (according to the sweep line algorithm)
+	 */
 	else return (y - yIntercept) / slope;
 }
 

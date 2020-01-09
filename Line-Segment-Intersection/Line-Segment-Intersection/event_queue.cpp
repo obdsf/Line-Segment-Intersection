@@ -15,8 +15,8 @@
 // # ### #################################################################################### ### #
 
 // Constructors & Destructor
-event_queue::event_queue(std::vector<line_segment>& lineSet)
-  : m_queue{}, m_lineSet{ &lineSet }
+event_queue::event_queue()
+  : m_queue{}, m_lineSet{}
 {}
 
 event_queue::~event_queue() {}

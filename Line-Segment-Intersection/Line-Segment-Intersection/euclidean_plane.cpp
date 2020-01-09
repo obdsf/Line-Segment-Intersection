@@ -34,7 +34,7 @@ euclidean_plane::euclidean_plane()
   , m_physicalMultiPairSet{}, m_logicalMultiPairSet{}
   , m_physicalMultiPairIntersectionPointsNaive{}, m_physicalMultiPairIntersectionPointsSweep{}
   , m_logicalMultiPairIntersectionPointsNaive{}, m_logicalMultiPairIntersectionPointsSweep{}
-  , m_physicalSweep{ m_physicalMultiPairSet }, m_logicalSweep{ sf::Lines, 2 }
+  , m_physicalSweep{}, m_logicalSweep{ sf::Lines, 2 }
   , m_font{}, m_statisticsText{}
   , m_lineAText{}, m_lineApText{}, m_lineAqText{}, m_lineAslopeText{}
   , m_lineBText{}, m_lineBpText{}, m_lineBqText{}, m_lineBslopeText{}
@@ -54,7 +54,7 @@ euclidean_plane::euclidean_plane()
   , m_hideNaiveIntersections{ false }, m_hideSweepIntersections{ false }
   , m_drawSinglePairSweepLine{ false }, m_drawMultiPairSweepLine{ false }
   , m_singlePairMode{ true }, m_singlePairTrashed{ true }, m_multiPairTrashed{ true }
-  , m_fancyCalculationMode{ true }, m_useUpdateLimiter{ false }
+  , m_fancyCalculationMode{ true }, m_lastSweptSinglePair{ true }, m_useUpdateLimiter{ false }
   , m_currentlyCalculatingIntersectionsNaive{ false }, m_currentlyCalculatingIntersectionsSweep{ false }
   , m_multiPairSetSize{ 25 }, m_naiveIterI{ 0 }, m_naiveIterJ{ 0 }, m_distribution{ distMin, distMax }
 {
@@ -167,8 +167,8 @@ void euclidean_plane::run() {
     sf::Time elapsedTime = clock.restart();
     if (m_useUpdateLimiter) {
       timeSinceLastUpdate += elapsedTime;
-      while (timeSinceLastUpdate > timePerFrame) {
-        timeSinceLastUpdate -= timePerFrame;
+      while (timeSinceLastUpdate > timePerUpdate) {
+        timeSinceLastUpdate -= timePerUpdate;
         processEvents();
         update();
       }
@@ -278,7 +278,7 @@ void euclidean_plane::update() {
       if (m_drawSinglePairIntersectionNaive) m_drawSinglePairIntersectionNaive = false;
       if (m_drawSinglePairIntersectionSweep) m_drawSinglePairIntersectionSweep = false;
       if (m_drawSinglePairSweepLine) m_drawSinglePairSweepLine = false;
-      if (m_currentlyCalculatingIntersectionsSweep) m_currentlyCalculatingIntersectionsSweep = false;
+      if (m_currentlyCalculatingIntersectionsSweep && m_lastSweptSinglePair) m_currentlyCalculatingIntersectionsSweep = false;
       updateLinesInfo();
     } else {
       m_physicalMultiPairSet.clear();
@@ -300,7 +300,7 @@ void euclidean_plane::update() {
       if (m_drawMultiPairIntersectionsSweep) m_drawMultiPairIntersectionsSweep = false;
       if (m_drawMultiPairSweepLine) m_drawMultiPairSweepLine = false;
       if (m_currentlyCalculatingIntersectionsNaive) m_currentlyCalculatingIntersectionsNaive = false;
-      if (m_currentlyCalculatingIntersectionsSweep) m_currentlyCalculatingIntersectionsSweep = false;
+      if (m_currentlyCalculatingIntersectionsSweep && !m_lastSweptSinglePair) m_currentlyCalculatingIntersectionsSweep = false;
     }
     m_genNewSetOfLines = false;
   }
@@ -344,7 +344,7 @@ void euclidean_plane::update() {
     }
     m_calcIntersectionsNaive = false;
   }
-  // calculate intersections frame by frame in multi pair simulation (naive)
+  // calculate intersections frame by frame in multi pair simulation (naive - fancy)
   if (m_currentlyCalculatingIntersectionsNaive) {
     if (m_naiveIterI != m_naiveIterJ) {
       point pIntPoint;
@@ -367,7 +367,9 @@ void euclidean_plane::update() {
   if (m_calcIntersectionsSweep) {
     if (m_singlePairMode) {
       if (!m_singlePairTrashed) {
+        m_lastSweptSinglePair = true;
         m_physicalSweep.reset();
+        m_physicalSweep.changeIntersectionPointSet();
         m_drawSinglePairIntersectionSweep = false;
         m_drawMultiPairSweepLine = false;
         if (m_fancyCalculationMode) {
@@ -392,9 +394,11 @@ void euclidean_plane::update() {
       }
     } else {
       if (!m_multiPairTrashed) {
+        m_lastSweptSinglePair = false;
         m_physicalMultiPairIntersectionPointsSweep.clear();
         m_logicalMultiPairIntersectionPointsSweep.clear();
         m_physicalSweep.reset();
+        m_physicalSweep.changeIntersectionPointSet(m_physicalMultiPairIntersectionPointsSweep);
         m_drawMultiPairIntersectionsSweep = false;
         m_drawSinglePairSweepLine = false;
         if (m_fancyCalculationMode) {
@@ -415,7 +419,7 @@ void euclidean_plane::update() {
     }
     m_calcIntersectionsSweep = false;
   }
-  // sweep line frame by frame
+  // sweep line frame by frame (fancy)
   if (m_currentlyCalculatingIntersectionsSweep) {
     if (!m_physicalSweep.reachedEnd()) {
       // PROCESS CURRENT STEP
@@ -429,7 +433,9 @@ void euclidean_plane::update() {
       if (m_drawMultiPairSweepLine) m_drawMultiPairSweepLine = false;
     }
   }
-
+  /* # ### ######################################################################################################################## ### # *
+   * # ### ######################################################################################################################## ### # *
+   * # ### ######################################################################################################################## ### # */
   // # ### ############### ### #
   // # ### Test Zone Start ### #
   // # ### ############### ### #
@@ -438,7 +444,8 @@ void euclidean_plane::update() {
     // ____________________________
     // # ### Write Code Below ### #|
     // \/\/\/\/\/\/\/\/\/\/\/\/\/\/|
-    event_queue Q{ m_physicalMultiPairSet };
+    event_queue Q{};
+    Q.changeSet(m_physicalMultiPairSet);
     Q.initialize();
     Q.print();
 
@@ -465,6 +472,9 @@ void euclidean_plane::update() {
   // # ### ############### ### #
   // # ###  Test Zone End  ### #
   // # ### ############### ### #
+  /* # ### ######################################################################################################################## ### # *
+   * # ### ######################################################################################################################## ### # *
+   * # ### ######################################################################################################################## ### # */
   return;
 }
 
