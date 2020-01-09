@@ -14,7 +14,7 @@
 // Constructors & Destructor
 sweep_line::sweep_line()
   : sweep{ epbTopLeft, epbTopRight }
-  , Q{}, T{}, m_intersectionPointSet{}
+  , Q{}, T{}
   , m_step{ 2 * g_precision }
   , m_start{ (int)epbTopLeft.y }
   , m_end{ (int)epbBotLeft.y }
@@ -62,10 +62,10 @@ bool sweep_line::handleEventPoint(event_point ep, point* intersectionPoint) {
    *  are stored with the event point p. (For horizontal segments, the upper
    *  endpoint is by definition the left endpoint.)"
    */
+  bool epIsIntersectionPoint{ false };
   std::vector<line_segment*> linesL; // "Let L(p) denote the subset of segments found whose lower endpoint is p"
   std::vector<line_segment*> linesC; // "Let C(p) denote the subset of segments found that contain p in their interior"
   T.find(linesL, linesC, ep); // "Find all segments stored in T that contain p;"
-  bool epIsIntersectionPoint{ false };
   if (ep.linesU.size() + linesL.size() + linesC.size() > 1) { // "If the union of L(p), U(p) and C(p) contains more than one segment"
     epIsIntersectionPoint = true; // "then report p as an intersection"
     intersectionPoint = ep.p;
@@ -99,6 +99,7 @@ bool sweep_line::handleEventPoint(event_point ep, point* intersectionPoint) {
     // "FINDNEWEVENT(sl, s', p)"
     // "FINDNEWEVENT(s'', sr, p)"
   }
+  return epIsIntersectionPoint;
 }
 
 void sweep_line::changeQueueSet(std::vector<line_segment>& lineSet) {
@@ -106,7 +107,9 @@ void sweep_line::changeQueueSet(std::vector<line_segment>& lineSet) {
   return;
 }
 
+/* Soon to be removed
 void sweep_line::changeIntersectionPointSet(std::vector<point>& intersectionPointSet) {
   m_intersectionPointSet = &intersectionPointSet;
   return;
 }
+*/

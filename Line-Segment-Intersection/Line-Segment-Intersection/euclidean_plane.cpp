@@ -369,7 +369,6 @@ void euclidean_plane::update() {
       if (!m_singlePairTrashed) {
         m_lastSweptSinglePair = true;
         m_physicalSweep.reset();
-        m_physicalSweep.changeIntersectionPointSet();
         m_drawSinglePairIntersectionSweep = false;
         m_drawMultiPairSweepLine = false;
         if (m_fancyCalculationMode) {
@@ -398,7 +397,6 @@ void euclidean_plane::update() {
         m_physicalMultiPairIntersectionPointsSweep.clear();
         m_logicalMultiPairIntersectionPointsSweep.clear();
         m_physicalSweep.reset();
-        m_physicalSweep.changeIntersectionPointSet(m_physicalMultiPairIntersectionPointsSweep);
         m_drawMultiPairIntersectionsSweep = false;
         m_drawSinglePairSweepLine = false;
         if (m_fancyCalculationMode) {
@@ -458,11 +456,11 @@ void euclidean_plane::update() {
     Q.print();
 
     status_structure T{};
-    T.add(m_physicalMultiPairSet.at(0));
-    T.add(m_physicalMultiPairSet.at(1));
-    T.add(m_physicalMultiPairSet.at(2));
-    T.add(m_physicalMultiPairSet.at(3));
-    T.add(m_physicalMultiPairSet.at(4));
+    T.add(&m_physicalMultiPairSet.at(0));
+    T.add(&m_physicalMultiPairSet.at(1));
+    T.add(&m_physicalMultiPairSet.at(2));
+    T.add(&m_physicalMultiPairSet.at(3));
+    T.add(&m_physicalMultiPairSet.at(4));
     T.print();
     // /\/\/\/\/\/\/\/\/\/\/\/\/\/\|
     // # ### Write Code Above ### #|

@@ -26,14 +26,14 @@ public:
 	bool reachedEnd();
 	bool handleEventPoint(event_point ep, point* intersectionPoint);
 	void changeQueueSet(std::vector<line_segment>& lineSet);
-	void changeIntersectionPointSet(std::vector<point>& intersectionPointSet);
+	//void changeIntersectionPointSet(std::vector<point>& intersectionPointSet); // Soon to be removed
 // Member Variables
 public:
 	line_segment sweep;
 	event_queue Q;
 	status_structure T;
 private:
-	std::vector<point>* m_intersectionPointSet;
+	//std::vector<point>* m_intersectionPointSet; // Soon to be removed
 	float m_step;
 	int m_start;
 	int m_end;
