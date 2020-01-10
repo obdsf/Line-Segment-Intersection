@@ -22,6 +22,7 @@ public:
 	void add(const event_point& intersectionEventPoint);
 	event_point getNextEventPoint();
 	float nextEventPointPosition();
+	bool contains(event_point& epNew);
 	bool isEmpty();
 	void clear();
 	void changeSet(std::vector<line_segment>& lineSet);

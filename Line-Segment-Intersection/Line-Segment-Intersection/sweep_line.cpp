@@ -81,33 +81,48 @@ bool sweep_line::handleEventPoint(event_point ep, point* intersectionPoint) {
     T.add(lineSeg);
   } // "Deleting and re-inserting the segments of C(p) reverses their order"
   if (ep.linesU.empty() && linesC.empty()) {
-    line_segment* leftSeg{};
-    line_segment* rightSeg{};
-    T.findAdjacentSegments(leftSeg, rightSeg, ep); // "Let sl and sr be the left and right neighbors of p in T"
-    // "FINDNEWEVENT(sl,sr, p)"
+    line_segment* leftSeg{ nullptr };
+    line_segment* rightSeg{ nullptr };
+    if (T.findAdjacentSegments(leftSeg, rightSeg, ep)) { // "Let sl and sr be the left and right neighbors of p in T"
+      findNewEvent(*leftSeg, *rightSeg, ep); // "FINDNEWEVENT(sl,sr, p)"
+    }
   } else {
-    line_segment* leftSeg{};
-    line_segment* leftmostSeg{};
-    line_segment* rightmostSeg{};
-    line_segment* rightSeg{};
-    T.findBoundariesOfUnion(leftSeg, leftmostSeg, rightmostSeg, rightSeg, ep.linesU, linesC);
     /* "Let s' be the leftmost segment of union U(p), C(p) in T
      *  Let sl be the left neighbor of s' in T
      *  Let s'' be the rightmost segment of union U(p), C(p) in T
-     *  Let sr be the right neighbor of s'' in T"
+     *  Let sr be the right neighbor of s'' in T
+     *  FINDNEWEVENT(sl, s', p)
+     *  FINDNEWEVENT(s'', sr, p)"
      */
-    // "FINDNEWEVENT(sl, s', p)"
-    // "FINDNEWEVENT(s'', sr, p)"
+    line_segment* leftSeg{ nullptr };
+    line_segment* leftmostSeg{ nullptr };
+    line_segment* rightmostSeg{ nullptr };
+    line_segment* rightSeg{ nullptr };
+    int kappa{ T.findBoundariesOfUnion(leftSeg, leftmostSeg, rightmostSeg, rightSeg, ep.linesU, linesC) };
+    if (kappa == 1 || kappa == 3) findNewEvent(*leftSeg, *leftmostSeg, ep); // conditions checked ensure pointers are not null
+    if (kappa == 1 || kappa == 2) findNewEvent(*rightmostSeg, *rightSeg, ep); // conditions checked ensure pointers are not null
   }
   return epIsIntersectionPoint;
 }
 
+void sweep_line::findNewEvent(line_segment& leftSeg, line_segment& rightSeg, event_point& ep) {
+  point intersectionPoint{};
+  if (leftSeg.intersects(rightSeg, intersectionPoint)) {
+    if (intersectionPoint.y < ep.p->y || intersectionPoint.y == ep.p->y && intersectionPoint.x > ep.p->x) {
+      event_point epNew{ intersectionPoint };
+      if (!Q.contains(epNew)) {
+        Q.add(epNew);
+      }
+    }
+  }
+}
+
+/* Soon to be removed
 void sweep_line::changeQueueSet(std::vector<line_segment>& lineSet) {
   Q.changeSet(lineSet);
   return;
 }
 
-/* Soon to be removed
 void sweep_line::changeIntersectionPointSet(std::vector<point>& intersectionPointSet) {
   m_intersectionPointSet = &intersectionPointSet;
   return;

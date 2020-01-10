@@ -101,8 +101,36 @@ bool line_segment::contains(const point& k) {
 }
 
 bool line_segment::partially_intersects(const line_segment& l, point& k) {
-	if (parallel(l)) return false;
 	float x, y;
+	if (parallel(l)) {
+		if (slope == INFINITY) {
+			if (l.p.x != p.x) return false;
+			else {
+				if (l.lowerEndPoint.y > upperEndPoint.y || lowerEndPoint.y > l.upperEndPoint.y) return false;
+				else {
+					x = p.x;
+					if (upperEndPoint.y > l.upperEndPoint.y) {
+						y = l.upperEndPoint.y;
+					} else {
+						y = upperEndPoint.y;
+					}
+				}
+			}
+		} else {
+			if (l.yIntercept != yIntercept) return false;
+			else {
+				if (l.lowerEndPoint.y > upperEndPoint.y || lowerEndPoint.y > l.upperEndPoint.y) return false;
+				else {
+					x = p.x;
+					if (upperEndPoint.y > l.upperEndPoint.y) {
+						y = l.upperEndPoint.y;
+					} else {
+						y = upperEndPoint.y;
+					}
+				}
+			}
+		}
+	}
 	if (slope == INFINITY) {
 		x = yIntercept;
 		y = x * l.slope + l.yIntercept;

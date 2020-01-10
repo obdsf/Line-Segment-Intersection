@@ -60,6 +60,12 @@ void event_queue::add(const event_point& intersectionEventPoint) {
       m_queue.insert(it, intersectionEventPoint);
       inserIntersectionEventPoint = false;
       break;
+    } else if (intersectionEventPoint.p->y == it->p->y) { // in same y events are treated from left to right (Q is inverted, next event is back)
+      if (intersectionEventPoint.p->x > it->p->x) {
+        m_queue.insert(it, intersectionEventPoint);
+        inserIntersectionEventPoint = false;
+        break;
+      }
     }
   }
   if (inserIntersectionEventPoint) m_queue.push_back(intersectionEventPoint);
@@ -75,6 +81,16 @@ event_point event_queue::getNextEventPoint() {
 float event_queue::nextEventPointPosition() {
   if (m_queue.empty()) return NULL;
   else return m_queue.back().p->y;
+}
+
+bool event_queue::contains(event_point& epNew) {
+  if (m_queue.empty()) return false;
+  for (event_point ep : m_queue) {
+    if (ep.p->eq(*epNew.p)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 bool event_queue::isEmpty() {

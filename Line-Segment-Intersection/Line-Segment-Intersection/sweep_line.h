@@ -25,7 +25,8 @@ public:
 	void advance(const float& position);
 	bool reachedEnd();
 	bool handleEventPoint(event_point ep, point* intersectionPoint);
-	void changeQueueSet(std::vector<line_segment>& lineSet);
+	void findNewEvent(line_segment& leftSeg, line_segment& rightSeg, event_point& ep);
+	//void changeQueueSet(std::vector<line_segment>& lineSet); // Soon to be removed
 	//void changeIntersectionPointSet(std::vector<point>& intersectionPointSet); // Soon to be removed
 // Member Variables
 public:
