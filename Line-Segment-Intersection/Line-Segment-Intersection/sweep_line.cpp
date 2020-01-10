@@ -14,8 +14,9 @@
 // Constructors & Destructor
 sweep_line::sweep_line()
   : sweep{ epbTopLeft, epbTopRight }
-  , Q{}, T{}
-  , m_step{ 2 * g_precision }
+  , Q{}, T{}, position{}
+  , m_step{ 2 * precision }
+  , scope{ m_step }
   , m_start{ (int)epbTopLeft.y }
   , m_end{ (int)epbBotLeft.y }
 {}
@@ -30,6 +31,7 @@ void sweep_line::reset() {
 void sweep_line::advance() {
   sweep.p.y = truncOneDigit(sweep.p.y + m_step);
   sweep.q.y = truncOneDigit(sweep.q.y + m_step);
+  position = yBias - sweep.p.y;
   /* truncOneDigit function truncs every digit after the first decimal digit
    * just like trunc, there are cases of error due to how floating point
    * numbers operate (number 512.1 causes truncOneDigit to produce the same
@@ -48,6 +50,7 @@ void sweep_line::advance(const float& position) {
   if (position >= m_start && position <= m_end) {
     sweep.p.y = position;
     sweep.q.y = position;
+    this->position = yBias - sweep.p.y;
   }
   return;
 }
@@ -57,7 +60,7 @@ bool sweep_line::reachedEnd() {
   return false;
 }
 
-bool sweep_line::handleEventPoint(event_point ep, point* intersectionPoint) {
+bool sweep_line::handleEventPoint(event_point ep, point& intersectionPoint) {
   /* "Let U(p) be the set of segments whose upper endpoint is p; these segments
    *  are stored with the event point p. (For horizontal segments, the upper
    *  endpoint is by definition the left endpoint.)"
@@ -68,10 +71,10 @@ bool sweep_line::handleEventPoint(event_point ep, point* intersectionPoint) {
   T.find(linesL, linesC, ep); // "Find all segments stored in T that contain p;"
   if (ep.linesU.size() + linesL.size() + linesC.size() > 1) { // "If the union of L(p), U(p) and C(p) contains more than one segment"
     epIsIntersectionPoint = true; // "then report p as an intersection"
-    intersectionPoint = ep.p;
+    intersectionPoint = *ep.p;
 
-    std::cout << "test"; // test
-    ep.p->print(); // test
+    std::cout << "found intersection!"; // TEMP TEST
+    ep.p->print(); // TEMP TEST
   }
   T.erase(linesL, linesC); // "Delete the segments in the union of L(p) and C(p) from T"
   for (line_segment* lineSeg : ep.linesU) { // "Insert the segments in U(p) into T"
@@ -83,7 +86,7 @@ bool sweep_line::handleEventPoint(event_point ep, point* intersectionPoint) {
   if (ep.linesU.empty() && linesC.empty()) {
     line_segment* leftSeg{ nullptr };
     line_segment* rightSeg{ nullptr };
-    if (T.findAdjacentSegments(leftSeg, rightSeg, ep)) { // "Let sl and sr be the left and right neighbors of p in T"
+    if (/*T.findAdjacentSegments(leftSeg, rightSeg, ep)*/leftSeg!=nullptr&&rightSeg!=nullptr) { // "Let sl and sr be the left and right neighbors of p in T"
       findNewEvent(*leftSeg, *rightSeg, ep); // "FINDNEWEVENT(sl,sr, p)"
     }
   } else {
@@ -98,11 +101,11 @@ bool sweep_line::handleEventPoint(event_point ep, point* intersectionPoint) {
     line_segment* leftmostSeg{ nullptr };
     line_segment* rightmostSeg{ nullptr };
     line_segment* rightSeg{ nullptr };
-    int kappa{ T.findBoundariesOfUnion(leftSeg, leftmostSeg, rightmostSeg, rightSeg, ep.linesU, linesC) };
-    if (kappa == 1 || kappa == 3) findNewEvent(*leftSeg, *leftmostSeg, ep); // conditions checked ensure pointers are not null
-    if (kappa == 1 || kappa == 2) findNewEvent(*rightmostSeg, *rightSeg, ep); // conditions checked ensure pointers are not null
+    int kappa{ T.findBoundariesOfUnion(leftSeg, leftmostSeg, rightmostSeg, rightSeg, ep.linesU, linesC, ep) };
+    if (/*kappa == 1 || kappa == 3*/leftSeg!=nullptr&&leftmostSeg!=nullptr) findNewEvent(*leftSeg, *leftmostSeg, ep); // conditions checked ensure pointers are not null
+    if (/*kappa == 1 || kappa == 2*/rightmostSeg!=nullptr&&rightSeg!=nullptr) findNewEvent(*rightmostSeg, *rightSeg, ep); // conditions checked ensure pointers are not null
   }
-  return epIsIntersectionPoint;
+  return epIsIntersectionPoint; // if ep was an intersection point return true, else return false
 }
 
 void sweep_line::findNewEvent(line_segment& leftSeg, line_segment& rightSeg, event_point& ep) {

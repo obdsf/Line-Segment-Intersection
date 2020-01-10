@@ -25,7 +25,7 @@ constexpr int distMax{ 300 }; // distribution maximum value
 constexpr int fontSize{ 25 };
 constexpr int intersectionPointsRadius{ 3 }; // the radius of the circles that appear on screen denoting intersection points between line segments
 constexpr int multiPairSetSizeThreshold{ 100 }; // the maximum lines drawn when in multi pair mode (MPM)
-constexpr float g_precision = 0.1; // the precision of the logical grid (the smallest possible distance between two points)
+constexpr float precision = 0.1; // the precision of the logical grid (the smallest possible distance between two points)
 
 const sf::Time timePerUpdate = sf::seconds(1.f / 60.f); // sets the maximum updates per second when the update limiter is on
 const std::string singlePairModeText{ "Single Pair Mode (SPM)" };
@@ -38,6 +38,8 @@ const point epbTopLeft{ leftMargin, topMargin }; // top left point that defines 
 const point epbTopRight{ windowWidth - rightMargin, topMargin }; // top right point that defines the euclidean space on screen
 const point epbBotRight{ windowWidth - rightMargin, windowHeight - bottomMargin }; // bottom right point that defines the euclidean space on screen
 const point epbBotLeft{ leftMargin, windowHeight - bottomMargin }; // bottom left point that defines the euclidean space on screen
+
+__declspec(selectany) unsigned int debuggingUnionCounter{ 0 };
 
 template <typename T>
 std::string toString(const T& value) {

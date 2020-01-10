@@ -25,7 +25,7 @@ status_structure::~status_structure() {}
 // Member Functions
 void status_structure::add(line_segment* lineSegToAdd, bool useMinorStep) {
   float yValue{ lineSegToAdd->upperEndPoint.y };
-  if (useMinorStep) yValue -= g_precision / 2;
+  if (useMinorStep) yValue -= precision / 2;
   auto it = m_status.begin();
   for (line_segment* lineSeg : m_status) {
     if (lineSegToAdd->solveForX(yValue) < lineSeg->solveForX(yValue)) break; // horizontal segments are inserted last (solveForX Implementation ensures this)
@@ -56,7 +56,7 @@ void status_structure::find(std::vector<line_segment*>& linesL, std::vector<line
   return;
 }
 
-int status_structure::findAdjacentSegments(line_segment* leftSeg, line_segment* rightSeg, event_point& ep) {
+int status_structure::findAdjacentSegments(line_segment*& leftSeg, line_segment*& rightSeg, event_point& ep) {
   if (m_status.empty()) return false; // found no adjacent segments, both segment pointers are invalid (the numeric value of true is 0)
   bool foundRight{ false };
   float epyValue{ ep.p->y };
@@ -83,107 +83,57 @@ int status_structure::findAdjacentSegments(line_segment* leftSeg, line_segment* 
   }
 }
 
-int status_structure::findBoundariesOfUnion(line_segment* leftSeg, line_segment* leftmostSeg,
-                                            line_segment* rightmostSeg, line_segment* rightSeg,
-                                            std::vector<line_segment*>& linesU, std::vector<line_segment*>& linesC) {
-  if (m_status.empty()) {
-    return false;
-  } else if (m_status.size() == 1) { // this check is needed because the for loop only works for m_statis.size() > 2
-    leftmostSeg = m_status.front();
-    rightmostSeg = leftmostSeg;
-    return -1;
-  } else if (m_status.size() == 2) { // this check is needed because the for loop only works for m_statis.size() > 2
-   leftmostSeg = m_status.front();
-   rightmostSeg = m_status.back();
-   return -2;
+int status_structure::findBoundariesOfUnion(line_segment*& leftSeg, line_segment*& leftmostSeg,
+                                            line_segment*& rightmostSeg, line_segment*& rightSeg,
+                                            std::vector<line_segment*>& linesU, std::vector<line_segment*>& linesC,
+                                            event_point& ep) {
+  std::cout << "union " << ++debuggingUnionCounter << '\n';
+  if (m_status.empty()) return 0; // all pointers are invalid (0)
+  if (linesU.empty()) { // linesC has both boundaries
+    leftmostSeg = linesC.front();
+    rightmostSeg = linesC.back();
+  } else if (linesC.empty()) { // linesU has both boundaries
+    leftmostSeg = linesU.front();
+    rightmostSeg = linesU.back();
+  } else { // not sure which set has the left and right boundary
+    float yValue{ep.p->y}; // prevents re-calculation
+    line_segment* potentialLeftmostSegC{ linesC.front() }; // candidate of C for leftmost boundary
+    line_segment* potentialLeftmostSegU{ linesU.front() }; // candidate of U for leftmost boundary
+    line_segment* potentialRightmostSegC{ linesC.back() }; // candidate of C for rightmost boundary
+    line_segment* potentialRightmostSegU{ linesU.back() }; // candidate of U for rightmost boundary
+    if (potentialLeftmostSegC->solveForX(yValue) < potentialLeftmostSegU->solveForX(yValue)) leftmostSeg = potentialLeftmostSegC;
+    else leftmostSeg = potentialLeftmostSegU; // smallest x is left boundary
+    if (potentialRightmostSegC->solveForX(yValue) > potentialRightmostSegU->solveForX(yValue)) rightmostSeg = potentialRightmostSegC;
+    else rightmostSeg = potentialRightmostSegU; // biggest x is right boundary
   }
-  line_segment* potentialLeftmostSegU{ linesU.front() };
-  line_segment* potentialLeftmostSegC{ linesC.front() };
-  line_segment* potentialRightmostSegU{ linesU.back() };
-  line_segment* potentialRightmostSegC{ linesC.back() };
-  int leftIter{ -1 };
-  int rightIter{ 1 };
-  leftmostSeg = potentialLeftmostSegU;
-  rightmostSeg = potentialRightmostSegU;
-  bool leftSideActive{ true }; // still searching for left and leftmost segments
-  bool foundFirstPotentialRightmostSeg{ false };
-  for (line_segment* lineSeg : m_status) { // only works for m_status.size() > 2
-    if (leftSideActive) { // look for the leftmost boundary
-      if (lineSeg == potentialLeftmostSegC) {
-        leftmostSeg = potentialLeftmostSegC;
-        leftIter = rightIter - 2;
-        leftSideActive = false;
-      } else if (lineSeg == potentialLeftmostSegU) {
-        leftIter = rightIter - 2;
-        leftSideActive = false;
-      }
-    } else { // look for the rightmost boundary
-      if (lineSeg == potentialRightmostSegC) {
-        if (foundFirstPotentialRightmostSeg) {
-          rightmostSeg = potentialRightmostSegC;
-          break;
-        }
-        foundFirstPotentialRightmostSeg = true;
-      } else if (lineSeg == potentialRightmostSegU) {
-        if (foundFirstPotentialRightmostSeg) {
-          rightmostSeg = potentialRightmostSegU;
-          break;
-        }
-        foundFirstPotentialRightmostSeg = true;
-      }
-    }
-    rightIter++;
-  }
-  int returnValue{ 1 }; // found both segments, both left and right segment pointers are valid (true)
-  if (leftIter == -1) {
-    returnValue++; // left segment pointer is invalid (2)
-  } else {
-    leftSeg = m_status.at(leftIter);
-  }
-  if (rightIter == m_status.size()) {
-    returnValue += 2; // right segment pointer is invalid (3)
-  } else {
-    rightSeg = m_status.at(rightIter);
-  }
-  return returnValue; // if returnValue is 4 then both left and right segment pointers are invalid
+  unsigned int returnValue{ 1 }; // both left and right segment pointers are valid (1)
+  std::vector<line_segment*>::iterator leftmostIter = std::find(m_status.begin(), m_status.end(), leftmostSeg); // iterator to leftmostSeg in m_status
+  std::vector<line_segment*>::iterator rightmostIter = std::find(m_status.begin(), m_status.end(), rightmostSeg); // iterator to of rightmostSeg in m_status
+  if (leftmostIter == m_status.begin()) returnValue += 1; // left segment pointer is invalid (2)
+  else leftSeg = *(--leftmostIter);
+  if (rightmostIter == m_status.end() - 1) returnValue += 2; // right segment pointer is invalid (3)
+  else rightSeg = *(++rightmostIter);
+  return returnValue;
+  /* returnValue possible values and their meanings:
+   * (0): m_status is empty, all pointers are invalid and should not be used
+   * (1): all pointers are valid
+   * (2): left segment pointer is invalid, all other pointers are valid (including right segment pointer)
+   * (3): right segment pointer is invalid, all other pointers are valid (including left segment pointer)
+   * (4): left and right segment pointers are invalid, all other pointers are valid
+   */
 }
 
 void status_structure::erase(std::vector<line_segment*>& linesL, std::vector<line_segment*>& linesC) {
   if (linesL.empty() && linesC.empty()) return;
-  bool checkForL{ false };
-  bool checkForC{ false };
-  line_segment* firstLineL = nullptr;
-  line_segment* firstLineC = nullptr;
-  int posL{ -1 };
-  int posC{ -1 };
   if (!linesL.empty()) {
-    checkForL = true;
-    firstLineL = linesL.front();
+    for (line_segment* lineSeg : linesL) {
+      m_status.erase(std::remove(m_status.begin(), m_status.end(), lineSeg), m_status.end());
+    }
   }
   if (!linesC.empty()) {
-    checkForC = true;
-    firstLineC = linesC.front();
-  }
-  for (line_segment* lineSeg : m_status) {
-    if (checkForL) {
-      posL++;
-      if (lineSeg->name == firstLineL->name) checkForL = false;
+    for (line_segment* lineSeg : linesC) {
+      m_status.erase(std::remove(m_status.begin(), m_status.end(), lineSeg), m_status.end());
     }
-    if (checkForC) {
-      posC++;
-      if (lineSeg->name == firstLineC->name) checkForC = false;
-    }
-    if (!checkForL && !checkForC) break;
-  }
-  if (posL > -1) {
-    auto first{ m_status.begin() + posL };
-    auto last{ first + m_status.size() };
-    m_status.erase(first, last);
-  }
-  if (posC > -1) {
-    auto first{ m_status.begin() + posC };
-    auto last{ first + m_status.size() };
-    m_status.erase(first, last);
   }
   return;
 }

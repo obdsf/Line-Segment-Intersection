@@ -19,10 +19,11 @@ public:
 // Member Functions
 	void add(line_segment* lineSegToAdd, bool useMinorStep = false);
 	void find(std::vector<line_segment*>& linesL, std::vector<line_segment*>& linesC, event_point& ep);
-	int findAdjacentSegments(line_segment* leftSeg, line_segment* rightSeg, event_point& ep);
-	int findBoundariesOfUnion(line_segment* leftSeg, line_segment* leftmostSeg,
-														line_segment* rightmostSeg, line_segment* rightSeg,
-														std::vector<line_segment*>& linesU, std::vector<line_segment*>& linesC);
+	int findAdjacentSegments(line_segment*& leftSeg, line_segment*& rightSeg, event_point& ep);
+	int findBoundariesOfUnion(line_segment*& leftSeg, line_segment*& leftmostSeg,
+														line_segment*& rightmostSeg, line_segment*& rightSeg,
+														std::vector<line_segment*>& linesU, std::vector<line_segment*>& linesC,
+														event_point& ep);
 	void erase(std::vector<line_segment*>& linesL, std::vector<line_segment*>& linesC);
 	bool isEmpty();
 	void clear();

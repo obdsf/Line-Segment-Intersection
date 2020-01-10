@@ -327,9 +327,10 @@ void euclidean_plane::update() {
         } else { // fast calculation mode
           for (int i = 0; i < m_multiPairSetSize; i++) {
             for (int j = 0; j < m_multiPairSetSize; j++) {
-              if (i == j) break;
+              if (i == j) continue;
               point pIntPoint;
               if (m_physicalMultiPairSet[i].intersects(m_physicalMultiPairSet[j], pIntPoint)) {
+                m_physicalMultiPairIntersectionPointsNaive.push_back(pIntPoint);
                 sf::CircleShape lIntPoint;
                 lIntPoint.setRadius(intersectionPointsRadius);
                 lIntPoint.setFillColor(sf::Color::Green);
@@ -349,6 +350,7 @@ void euclidean_plane::update() {
     if (m_naiveIterI != m_naiveIterJ) {
       point pIntPoint;
       if (m_physicalMultiPairSet.at(m_naiveIterI).intersects(m_physicalMultiPairSet.at(m_naiveIterJ), pIntPoint)) {
+        m_physicalMultiPairIntersectionPointsNaive.push_back(pIntPoint);
         sf::CircleShape lIntPoint;
         lIntPoint.setRadius(intersectionPointsRadius);
         lIntPoint.setFillColor(sf::Color::Green);
@@ -372,7 +374,7 @@ void euclidean_plane::update() {
         m_drawSinglePairIntersectionSweep = false;
         m_drawMultiPairSweepLine = false;
         if (m_fancyCalculationMode) {
-          // m_drawSinglePairIntersectionSweep = true;
+           m_drawSinglePairIntersectionSweep = true;
           // this goes to the point where the sweep line actually finds the intersection point
           // (if there is one) BUT NOT HERE
           // THIS IS TEMPORARY THIS IS TEMPORARY THIS IS TEMPORARY THIS IS TEMPORARY THIS IS TEMPORARY THIS IS TEMPORARY THIS IS TEMPORARY
@@ -397,20 +399,34 @@ void euclidean_plane::update() {
         m_physicalMultiPairIntersectionPointsSweep.clear();
         m_logicalMultiPairIntersectionPointsSweep.clear();
         m_physicalSweep.reset();
+        updateSweep(m_logicalSweep, m_physicalSweep);
+        m_physicalSweep.Q.changeSet(m_physicalMultiPairSet);
+        m_physicalSweep.Q.clear();
+        m_physicalSweep.Q.initialize();
+        m_physicalSweep.T.clear();
+        debuggingUnionCounter = 0; // TEMP TEST TEMP TEST TEMP TEST
+        system("CLS"); // TEMP TEST TEMP TEST TEMP TEST
         m_drawMultiPairIntersectionsSweep = false;
         m_drawSinglePairSweepLine = false;
         if (m_fancyCalculationMode) {
-          //m_drawMultiPairIntersectionSweep = true;
-          // this goes to the point where the sweep line actually finds the intersection point
-          // (if there is one) BUT NOT HERE
+          m_drawMultiPairIntersectionsSweep = true;
           m_drawMultiPairSweepLine = true;
           m_currentlyCalculatingIntersectionsSweep = true;
         } else {
-          while (!m_physicalSweep.reachedEnd()) {
-            // PROCESS CURRENT STEP
-            // UPDATE m_physicalMultiPairIntersectionPointsSweep IF NEEDED
-            // UPDATE m_logicalMultiPairIntersectionPointsSweep IF NEEDED
-            m_physicalSweep.advance();
+          while (!m_physicalSweep.Q.empty()) {
+            m_physicalSweep.advance(m_physicalSweep.Q.nextEventPointPosition());
+            point pIntPoint{};
+            std::cout << "ping\n";
+            if (m_physicalSweep.handleEventPoint(m_physicalSweep.Q.getNextEventPoint(), pIntPoint)) {
+              std::cout << "pong\n";
+              m_physicalMultiPairIntersectionPointsSweep.push_back(pIntPoint); // get next ep, if it is an intersection point add it, if not do nothing
+              sf::CircleShape lIntPoint;
+              lIntPoint.setRadius(intersectionPointsRadius);
+              lIntPoint.setFillColor(sf::Color::Magenta);
+              updatePoint(lIntPoint, pIntPoint);
+              m_logicalMultiPairIntersectionPointsSweep.push_back(lIntPoint);
+              m_drawMultiPairIntersectionsSweep = true;
+            }
           }
         }
       }
@@ -420,11 +436,26 @@ void euclidean_plane::update() {
   // sweep line frame by frame (fancy)
   if (m_currentlyCalculatingIntersectionsSweep) {
     if (!m_physicalSweep.reachedEnd()) {
-      // PROCESS CURRENT STEP
-      // UPDATE m_physicalMultiPairIntersectionPointsSweep IF NEEDED
-      // UPDATE m_logicalMultiPairIntersectionPointsSweep IF NEEDED
-      m_physicalSweep.advance();
-      updateSweep(m_logicalSweep, m_physicalSweep);
+      if (!m_physicalSweep.Q.empty()) {
+        m_physicalSweep.Q.print();
+        if (abs(m_physicalSweep.position - m_physicalSweep.Q.nextEventPointPosition()) <= m_physicalSweep.scope) {
+          point pIntPoint{};
+          if (m_physicalSweep.handleEventPoint(m_physicalSweep.Q.getNextEventPoint(), pIntPoint)) {
+            m_physicalMultiPairIntersectionPointsSweep.push_back(pIntPoint); // get next ep, if it is an intersection point add it, if not do nothing
+            sf::CircleShape lIntPoint;
+            lIntPoint.setRadius(intersectionPointsRadius);
+            lIntPoint.setFillColor(sf::Color::Magenta);
+            updatePoint(lIntPoint, pIntPoint);
+            m_logicalMultiPairIntersectionPointsSweep.push_back(lIntPoint);
+          }
+        } else {
+          m_physicalSweep.advance();
+          updateSweep(m_logicalSweep, m_physicalSweep);
+        }
+      } else {
+        m_physicalSweep.advance();
+        updateSweep(m_logicalSweep, m_physicalSweep);
+      }
     } else {
       m_currentlyCalculatingIntersectionsSweep = false;
       if (m_drawSinglePairSweepLine) m_drawSinglePairSweepLine = false;
@@ -442,26 +473,13 @@ void euclidean_plane::update() {
     // ____________________________
     // # ### Write Code Below ### #|
     // \/\/\/\/\/\/\/\/\/\/\/\/\/\/|
-    event_queue Q{};
-    Q.changeSet(m_physicalMultiPairSet);
-    Q.initialize();
-    Q.print();
-
-    point a{ 300, 300 };
-    event_point ep{ a };
-    Q.add(ep);
-    Q.print();
-
-    Q.getNextEventPoint();
-    Q.print();
-
-    status_structure T{};
-    T.add(&m_physicalMultiPairSet.at(0));
-    T.add(&m_physicalMultiPairSet.at(1));
-    T.add(&m_physicalMultiPairSet.at(2));
-    T.add(&m_physicalMultiPairSet.at(3));
-    T.add(&m_physicalMultiPairSet.at(4));
-    T.print();
+    std::vector<int> vecOfNums = { 12, 45, 54, 33, 2, 7, 8, 22, 43, 19 };
+    std::vector<int>::iterator it{};
+    std::vector<int>::iterator kappa{};
+    for (it = vecOfNums.begin(); it != vecOfNums.end(); it++) {
+      if (it == vecOfNums.begin() + 4) kappa = it;
+      std::cout << *it << '\n';
+    }
     // /\/\/\/\/\/\/\/\/\/\/\/\/\/\|
     // # ### Write Code Above ### #|
     // ____________________________|

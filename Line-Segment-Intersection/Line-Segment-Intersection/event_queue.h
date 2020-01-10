@@ -23,7 +23,7 @@ public:
 	event_point getNextEventPoint();
 	float nextEventPointPosition();
 	bool contains(event_point& epNew);
-	bool isEmpty();
+	bool empty();
 	void clear();
 	void changeSet(std::vector<line_segment>& lineSet);
 	void print();

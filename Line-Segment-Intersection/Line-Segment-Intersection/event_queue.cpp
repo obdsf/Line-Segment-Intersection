@@ -23,31 +23,35 @@ event_queue::~event_queue() {}
 
 // Member Functions
 void event_queue::initialize() {
-  {
+  { // Add first 2 event points to be able to compare the rest to them
     event_point upperEndPoint{ m_lineSet->at(0).upperEndPoint, m_lineSet->at(0) };
     event_point lowerEndPoint{ m_lineSet->at(0).lowerEndPoint };
     m_queue.push_back(lowerEndPoint);
     m_queue.push_back(upperEndPoint);
   }
-  for (int i = 1; i < m_lineSet->size(); i++) {
-    event_point upperEndPoint{ m_lineSet->at(i).upperEndPoint, m_lineSet->at(i) };
-    event_point lowerEndPoint{ m_lineSet->at(i).lowerEndPoint };
+  for (int i = 1; i < m_lineSet->size(); i++) { // start from the second line and add it's 2 event points
+    line_segment* currLine{ &m_lineSet->at(i) }; // prevents re-calculation of 'std::vector.at()' later
+    event_point upperEndPoint{ m_lineSet->at(i).upperEndPoint, *currLine }; // create ep from upper end point
+    event_point lowerEndPoint{ m_lineSet->at(i).lowerEndPoint }; // create ep from lower end point
+    bool insertUpper{ true }; // upper end point is yet to be inserted
+    bool insertLower{ true }; // lower end point is yet to be inserted
     std::vector<event_point>::iterator it;
-    bool insertUpper{ true };
-    bool insertLower{ true };
-    for (it = m_queue.begin(); it != m_queue.end(); it++) {
-      if (insertUpper && upperEndPoint.p->y < it->p->y) {
+    for (it = m_queue.begin(); it != m_queue.end(); it++) { // start scanning the queue
+      if (insertUpper && upperEndPoint.p->y < it->p->y) { // queue is reversed (higher y value event points are to the back)
         it = m_queue.insert(it, upperEndPoint);
-        insertUpper = false;
+        insertUpper = false; // stop searching for the upper event point, it's already in place
+      } else if (insertUpper && upperEndPoint.p->y == it->p->y) { // event point already exists
+        it->addLine(*currLine); // simply add the line to this event points list of lines
+        insertUpper = false; // stop searching for the upper event point
       }
       if (insertLower && lowerEndPoint.p->y < it->p->y) {
         it = m_queue.insert(it, lowerEndPoint);
         insertLower = false;
       }
-      if (!insertUpper && !insertLower) break;
+      if (!insertUpper && !insertLower) break; // if both event points are in place stop the scanning
     }
-    if (insertLower) m_queue.push_back(lowerEndPoint);
-    if (insertUpper) m_queue.push_back(upperEndPoint);
+    if (insertLower) m_queue.push_back(lowerEndPoint); // if lower event point wasn't handled, add it to the end of the list
+    if (insertUpper) m_queue.push_back(upperEndPoint); // if upper event point wasn't handled, add it above the lower (to the back, queue is inverted)
   }
   return;
 }
@@ -93,7 +97,7 @@ bool event_queue::contains(event_point& epNew) {
   return false;
 }
 
-bool event_queue::isEmpty() {
+bool event_queue::empty() {
   if (m_queue.empty()) return true;
   return false;
 }
