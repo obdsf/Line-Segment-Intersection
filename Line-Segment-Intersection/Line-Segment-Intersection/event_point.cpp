@@ -11,13 +11,13 @@
 
 // Constructors & Destructor
 event_point::event_point(point& p, line_segment& line)
-  : p{ &p }, linesU{}
+  : p{ p }, linesU{}
 {
   linesU.push_back(&line);
 }
 
 event_point::event_point(point& p)
-  : p{ &p }, linesU{}
+  : p{ p }, linesU{}
 {}
 
 event_point::~event_point() {}

@@ -19,7 +19,7 @@ public:
 // Member Functions
 public:
 	void initialize();
-	void add(const event_point& intersectionEventPoint);
+	void add(const event_point intersectionEventPoint);
 	event_point getNextEventPoint();
 	float nextEventPointPosition();
 	bool contains(event_point& epNew);

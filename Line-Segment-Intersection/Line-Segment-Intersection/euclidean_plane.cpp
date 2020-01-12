@@ -416,9 +416,7 @@ void euclidean_plane::update() {
           while (!m_physicalSweep.Q.empty()) {
             m_physicalSweep.advance(m_physicalSweep.Q.nextEventPointPosition());
             point pIntPoint{};
-            std::cout << "ping\n";
             if (m_physicalSweep.handleEventPoint(m_physicalSweep.Q.getNextEventPoint(), pIntPoint)) {
-              std::cout << "pong\n";
               m_physicalMultiPairIntersectionPointsSweep.push_back(pIntPoint); // get next ep, if it is an intersection point add it, if not do nothing
               sf::CircleShape lIntPoint;
               lIntPoint.setRadius(intersectionPointsRadius);
@@ -437,7 +435,6 @@ void euclidean_plane::update() {
   if (m_currentlyCalculatingIntersectionsSweep) {
     if (!m_physicalSweep.reachedEnd()) {
       if (!m_physicalSweep.Q.empty()) {
-        m_physicalSweep.Q.print();
         if (abs(m_physicalSweep.position - m_physicalSweep.Q.nextEventPointPosition()) <= m_physicalSweep.scope) {
           point pIntPoint{};
           if (m_physicalSweep.handleEventPoint(m_physicalSweep.Q.getNextEventPoint(), pIntPoint)) {
@@ -452,6 +449,7 @@ void euclidean_plane::update() {
           m_physicalSweep.advance();
           updateSweep(m_logicalSweep, m_physicalSweep);
         }
+        //m_physicalSweep.Q.print(); // TEMP TEST print queue after new event point has been popped
       } else {
         m_physicalSweep.advance();
         updateSweep(m_logicalSweep, m_physicalSweep);
@@ -473,13 +471,84 @@ void euclidean_plane::update() {
     // ____________________________
     // # ### Write Code Below ### #|
     // \/\/\/\/\/\/\/\/\/\/\/\/\/\/|
-    std::vector<int> vecOfNums = { 12, 45, 54, 33, 2, 7, 8, 22, 43, 19 };
-    std::vector<int>::iterator it{};
-    std::vector<int>::iterator kappa{};
-    for (it = vecOfNums.begin(); it != vecOfNums.end(); it++) {
-      if (it == vecOfNums.begin() + 4) kappa = it;
-      std::cout << *it << '\n';
+    /* // EVENT QUEUE FEATURE TEST, SEEMS OK
+    event_queue Q{};
+    line_segment lineSet{ 69, -69, 96, -96 };
+    std::vector<line_segment> qSet{ lineSet };
+    Q.changeSet(qSet);
+    Q.clear();
+    lineSet.upperEndPoint.print();
+    lineSet.lowerEndPoint.print();
+    Q.initialize();
+    Q.print();
+
+    for (int i = 0; i < 10; i++) {
+      point p{ (float)i, (float)i + 10 };
+      event_point ep{ p };
+      p.print();
+      Q.add(ep);
+      Q.print();
     }
+
+    point p{ 300, -300 };
+    event_point ep{ p };
+    p.print();
+    Q.add(ep);
+    Q.print();
+
+    p.update(300, 300);
+    event_point ep2{ p };
+    p.print();
+    Q.add(ep2);
+    Q.print();
+
+    line_segment lineSet2{ 69, -69, 96, -96 };
+    lineSet2.upperEndPoint.print();
+    Q.add(lineSet2.upperEndPoint);
+    Q.print();*/
+    /* // STATUS STRACTURE FEATURE TEST, SEEMS OK
+    point p0{ 0, 300 };
+    point p1{ 300, 300 };
+    point p2{ 300, -300 };
+    point p3{ -300, -300 };
+    point p4{ 300, 0 };
+    point p5{ -300, 0 };
+    point p6{ 0, -300 };
+    line_segment l0{ p0, p1 };
+    l0.print();
+    line_segment l1{ p0, p2 };
+    l1.print();
+    line_segment l2{ p0, p3 };
+    l2.print();
+    line_segment l3{ p0, p4 };
+    l3.print();
+    line_segment l4{ p0, p5 };
+    l4.print();
+    line_segment l5{ p0, p6 };
+    l5.print();
+    status_structure T{};
+    T.add(&l0);
+    T.print();
+    T.add(&l1);
+    T.print();
+    T.add(&l2);
+    T.print();
+    T.add(&l3);
+    T.print();
+    T.add(&l4);
+    T.print();
+    T.add(&l5);
+    T.print();
+    std::vector<line_segment*> linesToErase1{ &l2, &l4 };
+    std::vector<line_segment*> linesToErase2{ &l5 };
+    T.erase(linesToErase1, linesToErase2);
+    T.print();
+    line_segment l6{ p6,p0 };
+    l6.print();
+    int boolTest{ l5.slope < l6.slope };
+    std::cout << boolTest << '\n';*/
+    // SWEEP FEATURE TEST
+
     // /\/\/\/\/\/\/\/\/\/\/\/\/\/\|
     // # ### Write Code Above ### #|
     // ____________________________|

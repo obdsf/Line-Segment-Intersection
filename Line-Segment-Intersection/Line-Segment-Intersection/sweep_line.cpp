@@ -71,17 +71,17 @@ bool sweep_line::handleEventPoint(event_point ep, point& intersectionPoint) {
   T.find(linesL, linesC, ep); // "Find all segments stored in T that contain p;"
   if (ep.linesU.size() + linesL.size() + linesC.size() > 1) { // "If the union of L(p), U(p) and C(p) contains more than one segment"
     epIsIntersectionPoint = true; // "then report p as an intersection"
-    intersectionPoint = *ep.p;
+    intersectionPoint = ep.p;
 
     std::cout << "found intersection!"; // TEMP TEST
-    ep.p->print(); // TEMP TEST
+    ep.p.print(); // TEMP TEST
   }
   T.erase(linesL, linesC); // "Delete the segments in the union of L(p) and C(p) from T"
   for (line_segment* lineSeg : ep.linesU) { // "Insert the segments in U(p) into T"
-    T.add(lineSeg);
+    T.add(lineSeg, true);
   }
   for (line_segment* lineSeg : linesC) { // "Insert the segments in C(p) into T"
-    T.add(lineSeg);
+    T.add(lineSeg, true);
   } // "Deleting and re-inserting the segments of C(p) reverses their order"
   if (ep.linesU.empty() && linesC.empty()) {
     line_segment* leftSeg{ nullptr };
@@ -111,7 +111,7 @@ bool sweep_line::handleEventPoint(event_point ep, point& intersectionPoint) {
 void sweep_line::findNewEvent(line_segment& leftSeg, line_segment& rightSeg, event_point& ep) {
   point intersectionPoint{};
   if (leftSeg.intersects(rightSeg, intersectionPoint)) {
-    if (intersectionPoint.y < ep.p->y || intersectionPoint.y == ep.p->y && intersectionPoint.x > ep.p->x) {
+    if (intersectionPoint.y < ep.p.y || intersectionPoint.y == ep.p.y && intersectionPoint.x > ep.p.x) {
       event_point epNew{ intersectionPoint };
       if (!Q.contains(epNew)) {
         Q.add(epNew);

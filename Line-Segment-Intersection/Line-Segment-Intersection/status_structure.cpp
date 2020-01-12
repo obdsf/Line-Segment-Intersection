@@ -25,10 +25,25 @@ status_structure::~status_structure() {}
 // Member Functions
 void status_structure::add(line_segment* lineSegToAdd, bool useMinorStep) {
   float yValue{ lineSegToAdd->upperEndPoint.y };
-  if (useMinorStep) yValue -= precision / 2;
+  if (useMinorStep) yValue -= precision;
   auto it = m_status.begin();
   for (line_segment* lineSeg : m_status) {
-    if (lineSegToAdd->solveForX(yValue) < lineSeg->solveForX(yValue)) break; // horizontal segments are inserted last (solveForX Implementation ensures this)
+    float lineSegToAddX{ lineSegToAdd->solveForX(yValue) };
+    float lineSegX{ lineSeg->solveForX(yValue) };
+    float lineSegToAddSlope{ lineSegToAdd->slope };
+    float lineSegSlope{ lineSeg->slope };
+    if (lineSegToAddX < lineSegX) break; // horizontal segments are inserted last (solveForX Implementation ensures this)
+    else if (lineSegToAddX == lineSegX) {
+      if (lineSegToAddSlope > 0) {
+        if (lineSegSlope > 0) {
+          if (lineSegToAddSlope < lineSegSlope) break;
+        } else break;
+      } else if (lineSegToAddSlope < 0) {
+        if (lineSegSlope < 0) {
+          if (lineSegToAddSlope < lineSegSlope) break;
+        } else if (lineSegSlope == 0) break;
+      }
+    }
     it++;
   }
   m_status.insert(it, lineSegToAdd);
@@ -43,11 +58,11 @@ void status_structure::find(std::vector<line_segment*>& linesL, std::vector<line
    * so the function exits
    */
   for (line_segment* lineSeg : m_status) {
-    if (lineSeg->lowerEndPoint.eq(*ep.p)) {
+    if (lineSeg->lowerEndPoint.eq(ep.p)) {
       linesL.push_back(lineSeg);
       consecutiveLinesChainBroke = true;
     }
-    else if (lineSeg->contains(*ep.p)) {
+    else if (lineSeg->contains(ep.p)) {
       linesC.push_back(lineSeg);
       consecutiveLinesChainBroke = true;
     }
@@ -59,8 +74,8 @@ void status_structure::find(std::vector<line_segment*>& linesL, std::vector<line
 int status_structure::findAdjacentSegments(line_segment*& leftSeg, line_segment*& rightSeg, event_point& ep) {
   if (m_status.empty()) return false; // found no adjacent segments, both segment pointers are invalid (the numeric value of true is 0)
   bool foundRight{ false };
-  float epyValue{ ep.p->y };
-  float epxValue{ ep.p->x };
+  float epyValue{ ep.p.y };
+  float epxValue{ ep.p.x };
   int leftIter{ -1 };
   for (line_segment* lineSeg : m_status) {
     if (lineSeg->solveForX(epyValue) > epxValue) {
@@ -96,7 +111,7 @@ int status_structure::findBoundariesOfUnion(line_segment*& leftSeg, line_segment
     leftmostSeg = linesU.front();
     rightmostSeg = linesU.back();
   } else { // not sure which set has the left and right boundary
-    float yValue{ep.p->y}; // prevents re-calculation
+    float yValue{ep.p.y}; // prevents re-calculation
     line_segment* potentialLeftmostSegC{ linesC.front() }; // candidate of C for leftmost boundary
     line_segment* potentialLeftmostSegU{ linesU.front() }; // candidate of U for leftmost boundary
     line_segment* potentialRightmostSegC{ linesC.back() }; // candidate of C for rightmost boundary

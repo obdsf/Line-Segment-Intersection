@@ -20,6 +20,6 @@ public:
 	// Member Functions
 	void addLine(line_segment& line);
 	// Member Variables
-	point* p;
+	point p;
 	std::vector<line_segment*> linesU;
 };

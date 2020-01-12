@@ -60,12 +60,17 @@ void line_segment::update(const float& px, const float& py, const float& qx, con
 
 void line_segment::print() {
 	std::cout
-		<< "(" << p.x << ", " << p.y << ")"
+		<< name << ": "
+		<< "p(" << p.x << ", " << p.y << ")"
 		<< " <---> "
-		<< "(" << q.x << ", " << q.y << ")"
+		<< "q(" << q.x << ", " << q.y << ")"
 		<< " || slope: " << slope
 		<< " || y-intercept: " << yIntercept
 		<< '\n';
+	std::cout << "Upper End Point: ";
+	upperEndPoint.print();
+	std::cout << "Lower End Point: ";
+	lowerEndPoint.print();
 	return;
 }
 
@@ -103,7 +108,7 @@ bool line_segment::contains(const point& k) {
 bool line_segment::partially_intersects(const line_segment& l, point& k) {
 	float x, y;
 	if (parallel(l)) {
-		if (slope == INFINITY) {
+		if (isinf(slope)) {
 			if (l.p.x != p.x) return false;
 			else {
 				if (l.lowerEndPoint.y > upperEndPoint.y || lowerEndPoint.y > l.upperEndPoint.y) return false;
@@ -131,10 +136,10 @@ bool line_segment::partially_intersects(const line_segment& l, point& k) {
 			}
 		}
 	}
-	if (slope == INFINITY) {
+	if (isinf(slope)) {
 		x = yIntercept;
 		y = x * l.slope + l.yIntercept;
-	} else if (l.slope == INFINITY) {
+	} else if (isinf(l.slope)) {
 		x = l.yIntercept;
 		y = x * slope + yIntercept;
 	} else {
@@ -153,8 +158,8 @@ bool line_segment::intersects(line_segment& l, point& k) {
 }
 
 float line_segment::solveForX(float y) {
-	if (slope == INFINITY) return p.x;
-	else if (slope == 0) return INT_MAX;
+	if (isinf(slope)) return p.x;
+	else if (slope == 0) return FLT_MAX;
 	/* returning NULL is technically the right choice since mathematically
 	 * it is impossible to determine the x of a horizontal line, given a y
 	 * but returning any value above distMax saves us one check in the add
@@ -166,7 +171,13 @@ float line_segment::solveForX(float y) {
 }
 
 float line_segment::solveForY(float x) {
-	return slope * x + yIntercept;
+	if (isinf(slope)) return FLT_MIN;
+	/* returning INT_MIN is not mathematically correct but it is done in
+	 * order to be consistent with the solveForX function
+	 * (makes no difference in our calculations)
+	 */
+	else if (slope == 0) return p.y;
+	else return slope * x + yIntercept;
 }
 
 float line_segment::calcSlope() {
@@ -174,7 +185,7 @@ float line_segment::calcSlope() {
 }
 
 float line_segment::calcYIntercept() {
-	if (slope == INFINITY) return p.x;
+	if (isinf(slope)) return p.x;
 	return p.y - p.x * slope;
 }
 
