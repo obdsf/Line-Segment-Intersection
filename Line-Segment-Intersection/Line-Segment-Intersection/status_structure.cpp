@@ -23,9 +23,9 @@ status_structure::status_structure()
 status_structure::~status_structure() {}
 
 // Member Functions
-void status_structure::add(line_segment* lineSegToAdd, bool useMinorStep) {
+void status_structure::add(line_segment* lineSegToAdd, bool useMinorStep, float position) {
   float yValue{ lineSegToAdd->upperEndPoint.y };
-  if (useMinorStep) yValue -= precision;
+  if (useMinorStep) yValue = position - precision;
   auto it = m_status.begin();
   for (line_segment* lineSeg : m_status) {
     float lineSegToAddX{ lineSegToAdd->solveForX(yValue) };
@@ -60,18 +60,18 @@ void status_structure::find(std::vector<line_segment*>& linesL, std::vector<line
   for (line_segment* lineSeg : m_status) {
     if (lineSeg->lowerEndPoint.eq(ep.p)) {
       linesL.push_back(lineSeg);
+      std::cout << "lower end point: " << lineSeg->name << '\n'; // TEMP TEST
       consecutiveLinesChainBroke = true;
-    }
-    else if (lineSeg->contains(ep.p)) {
+    } else if (lineSeg->contains(ep.p)) {
       linesC.push_back(lineSeg);
+      std::cout << "contains: " << lineSeg->name << '\n'; // TEMP TEST
       consecutiveLinesChainBroke = true;
-    }
-    else if (consecutiveLinesChainBroke) break;
+    } else if (consecutiveLinesChainBroke) break;
   }
   return;
 }
 
-int status_structure::findAdjacentSegments(line_segment*& leftSeg, line_segment*& rightSeg, event_point& ep) {
+bool status_structure::findAdjacentSegments(line_segment*& leftSeg, line_segment*& rightSeg, event_point& ep) {
   if (m_status.empty()) return false; // found no adjacent segments, both segment pointers are invalid (the numeric value of true is 0)
   bool foundRight{ false };
   float epyValue{ ep.p.y };
@@ -87,14 +87,14 @@ int status_structure::findAdjacentSegments(line_segment*& leftSeg, line_segment*
   }
   if (foundRight) {
     if (leftIter == -1) { // same as 'if(segRight == m_status.front())'
-      return INT_MAX; // found only right segment, left segment pointer is invalid
+      return false; // found only right segment, left segment pointer is invalid
     } else {
       leftSeg = m_status.at(leftIter);
       return true; // found both segments, both segment pointers are valid (the numeric value of true is 1)
     }
   } else {
     leftSeg = m_status.back();
-    return INT_MIN; // found only left segment, right segment pointer is invalid
+    return false; // found only left segment, right segment pointer is invalid
   }
 }
 
@@ -102,24 +102,36 @@ int status_structure::findBoundariesOfUnion(line_segment*& leftSeg, line_segment
                                             line_segment*& rightmostSeg, line_segment*& rightSeg,
                                             std::vector<line_segment*>& linesU, std::vector<line_segment*>& linesC,
                                             event_point& ep) {
-  std::cout << "union " << ++debuggingUnionCounter << '\n';
-  if (m_status.empty()) return 0; // all pointers are invalid (0)
+  std::cout << "union " << ++debuggingUnionCounter << '\n'; // TEMP TEST
+  float yValue{ ep.p.y - precision }; // prevents re-calculation
   if (linesU.empty()) { // linesC has both boundaries
+    std::cout << "findBoundariesOfUnion: linesU is empty\n"; // TEMP TEST
     leftmostSeg = linesC.front();
     rightmostSeg = linesC.back();
+    for (line_segment* lineSeg : linesC) {
+      if (lineSeg->solveForX(yValue) < leftmostSeg->solveForX(yValue)) leftmostSeg = lineSeg;
+      else if (lineSeg->solveForX(yValue) > rightmostSeg->solveForX(yValue)) rightmostSeg = lineSeg;
+    }
   } else if (linesC.empty()) { // linesU has both boundaries
+    std::cout << "findBoundariesOfUnion: linesC is empty\n"; // TEMP TEST
     leftmostSeg = linesU.front();
     rightmostSeg = linesU.back();
+    for (line_segment* lineSeg : linesU) {
+      if (lineSeg->solveForX(yValue) < leftmostSeg->solveForX(yValue)) leftmostSeg = lineSeg;
+      else if (lineSeg->solveForX(yValue) > rightmostSeg->solveForX(yValue)) rightmostSeg = lineSeg;
+    }
   } else { // not sure which set has the left and right boundary
-    float yValue{ep.p.y}; // prevents re-calculation
-    line_segment* potentialLeftmostSegC{ linesC.front() }; // candidate of C for leftmost boundary
-    line_segment* potentialLeftmostSegU{ linesU.front() }; // candidate of U for leftmost boundary
-    line_segment* potentialRightmostSegC{ linesC.back() }; // candidate of C for rightmost boundary
-    line_segment* potentialRightmostSegU{ linesU.back() }; // candidate of U for rightmost boundary
-    if (potentialLeftmostSegC->solveForX(yValue) < potentialLeftmostSegU->solveForX(yValue)) leftmostSeg = potentialLeftmostSegC;
-    else leftmostSeg = potentialLeftmostSegU; // smallest x is left boundary
-    if (potentialRightmostSegC->solveForX(yValue) > potentialRightmostSegU->solveForX(yValue)) rightmostSeg = potentialRightmostSegC;
-    else rightmostSeg = potentialRightmostSegU; // biggest x is right boundary
+    std::cout << "findBoundariesOfUnion: both sets NOT empty\n"; // TEMP TEST
+    leftmostSeg = linesC.front();
+    rightmostSeg = linesU.back();
+    for (line_segment* lineSeg : linesC) {
+      if (lineSeg->solveForX(yValue) < leftmostSeg->solveForX(yValue)) leftmostSeg = lineSeg;
+      else if (lineSeg->solveForX(yValue) > rightmostSeg->solveForX(yValue)) rightmostSeg = lineSeg;
+    }
+    for (line_segment* lineSeg : linesU) {
+      if (lineSeg->solveForX(yValue) < leftmostSeg->solveForX(yValue)) leftmostSeg = lineSeg;
+      else if (lineSeg->solveForX(yValue) > rightmostSeg->solveForX(yValue)) rightmostSeg = lineSeg;
+    }
   }
   unsigned int returnValue{ 1 }; // both left and right segment pointers are valid (1)
   std::vector<line_segment*>::iterator leftmostIter = std::find(m_status.begin(), m_status.end(), leftmostSeg); // iterator to leftmostSeg in m_status

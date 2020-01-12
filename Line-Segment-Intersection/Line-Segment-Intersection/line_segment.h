@@ -14,7 +14,7 @@ class line_segment {
 // Constructors & Destructor
 public:
 	line_segment(const point &p, const point &q);
-	line_segment(const float& px, const float& py, const float& qx, const float& qy);
+	line_segment(const float& px = 0, const float& py = 0, const float& qx = 0, const float& qy = 0);
 	~line_segment();
 
 // Member Functions

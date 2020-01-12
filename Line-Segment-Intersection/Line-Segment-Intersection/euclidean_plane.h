@@ -158,5 +158,6 @@ private:
   void updateSimulationStateInfo();
   void updateMultiPairSetSize(bool increase);
 
+  bool containsPoint(std::vector<point>& vec, point& p);
   float orientation(point a, point b, point c);
 };

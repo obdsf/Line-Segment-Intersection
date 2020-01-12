@@ -40,12 +40,14 @@ void event_queue::initialize() {
       if (insertUpper && upperEndPoint.p.y < it->p.y) { // queue is reversed (higher y value event points are to the back)
         it = m_queue.insert(it, upperEndPoint);
         insertUpper = false; // stop searching for the upper event point, it's already in place
-      } else if (insertUpper && upperEndPoint.p.y == it->p.y) { // event point already exists
+      } else if (insertUpper && upperEndPoint.p.eq(it->p)) { // event point already exists
         it->addLine(*currLine); // simply add the line to this event points list of lines
         insertUpper = false; // stop searching for the upper event point
       }
       if (insertLower && lowerEndPoint.p.y < it->p.y) {
         it = m_queue.insert(it, lowerEndPoint);
+        insertLower = false;
+      } else if (insertLower && lowerEndPoint.p.eq(it->p)) {// event point already exists
         insertLower = false;
       }
       if (!insertUpper && !insertLower) break; // if both event points are in place stop the scanning

@@ -17,9 +17,9 @@ public:
 	status_structure();
 	~status_structure();
 // Member Functions
-	void add(line_segment* lineSegToAdd, bool useMinorStep = false);
+	void add(line_segment* lineSegToAdd, bool useMinorStep = false, float position = FLT_MAX);
 	void find(std::vector<line_segment*>& linesL, std::vector<line_segment*>& linesC, event_point& ep);
-	int findAdjacentSegments(line_segment*& leftSeg, line_segment*& rightSeg, event_point& ep);
+	bool findAdjacentSegments(line_segment*& leftSeg, line_segment*& rightSeg, event_point& ep);
 	int findBoundariesOfUnion(line_segment*& leftSeg, line_segment*& leftmostSeg,
 														line_segment*& rightmostSeg, line_segment*& rightSeg,
 														std::vector<line_segment*>& linesU, std::vector<line_segment*>& linesC,

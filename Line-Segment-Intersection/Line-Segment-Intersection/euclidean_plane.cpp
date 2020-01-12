@@ -23,7 +23,7 @@
 // Constructors & Destructor
 euclidean_plane::euclidean_plane()
   : m_window(sf::VideoMode(windowWidth, windowHeight), "Line Segment Intersection Driver")
-  , m_physicalLineA{ 0, 0, 1, 1 }, m_physicalLineB{ 0, 0, 1, 1 }
+  , m_physicalLineA{}, m_physicalLineB{}
   , m_physicalSinglePairSet{ &m_physicalLineA, &m_physicalLineB }
   , m_physicalIntersectionPointNaive{}, m_physicalIntersectionPointSweep{}
   , m_xAxis{ sf::Lines, 2 }, m_yAxis{ sf::Lines, 2 }
@@ -284,16 +284,12 @@ void euclidean_plane::update() {
       m_physicalMultiPairSet.clear();
       m_logicalMultiPairSet.clear();
       for (int i = 0; i < m_multiPairSetSize; i++) {
-        line_segment pLine{
-          (float)m_distribution(m_generator),
-          (float)m_distribution(m_generator),
-          (float)m_distribution(m_generator),
-          (float)m_distribution(m_generator)
-        };
-        sf::VertexArray lLine{ sf::Lines, 2 };
-        updateLine(lLine, pLine);
-        m_physicalMultiPairSet.push_back(pLine);
-        m_logicalMultiPairSet.push_back(lLine);
+        line_segment pLine{}; // create temp line
+        genNewLine(pLine); // update temp lines end points
+        sf::VertexArray lLine{ sf::Lines, 2 }; // create temp logical line
+        updateLine(lLine, pLine); // update logical line based on the physical line
+        m_physicalMultiPairSet.push_back(pLine); // add physical line to set
+        m_logicalMultiPairSet.push_back(lLine); // add logical line to set
       }
       if (m_multiPairTrashed) m_multiPairTrashed = false;
       if (m_drawMultiPairIntersectionsNaive) m_drawMultiPairIntersectionsNaive = false;
@@ -330,13 +326,15 @@ void euclidean_plane::update() {
               if (i == j) continue;
               point pIntPoint;
               if (m_physicalMultiPairSet[i].intersects(m_physicalMultiPairSet[j], pIntPoint)) {
-                m_physicalMultiPairIntersectionPointsNaive.push_back(pIntPoint);
-                sf::CircleShape lIntPoint;
-                lIntPoint.setRadius(intersectionPointsRadius);
-                lIntPoint.setFillColor(sf::Color::Green);
-                updatePoint(lIntPoint, pIntPoint);
-                m_logicalMultiPairIntersectionPointsNaive.push_back(lIntPoint);
-                m_drawMultiPairIntersectionsNaive = true;
+                if (!containsPoint(m_physicalMultiPairIntersectionPointsNaive, pIntPoint)) {
+                  m_physicalMultiPairIntersectionPointsNaive.push_back(pIntPoint);
+                  sf::CircleShape lIntPoint;
+                  lIntPoint.setRadius(intersectionPointsRadius);
+                  lIntPoint.setFillColor(sf::Color::Green);
+                  updatePoint(lIntPoint, pIntPoint);
+                  m_logicalMultiPairIntersectionPointsNaive.push_back(lIntPoint);
+                  m_drawMultiPairIntersectionsNaive = true;
+                }
               }
             }
           }
@@ -350,12 +348,14 @@ void euclidean_plane::update() {
     if (m_naiveIterI != m_naiveIterJ) {
       point pIntPoint;
       if (m_physicalMultiPairSet.at(m_naiveIterI).intersects(m_physicalMultiPairSet.at(m_naiveIterJ), pIntPoint)) {
-        m_physicalMultiPairIntersectionPointsNaive.push_back(pIntPoint);
-        sf::CircleShape lIntPoint;
-        lIntPoint.setRadius(intersectionPointsRadius);
-        lIntPoint.setFillColor(sf::Color::Green);
-        updatePoint(lIntPoint, pIntPoint);
-        m_logicalMultiPairIntersectionPointsNaive.push_back(lIntPoint);
+        if (!containsPoint(m_physicalMultiPairIntersectionPointsNaive, pIntPoint)) {
+          m_physicalMultiPairIntersectionPointsNaive.push_back(pIntPoint);
+          sf::CircleShape lIntPoint;
+          lIntPoint.setRadius(intersectionPointsRadius);
+          lIntPoint.setFillColor(sf::Color::Green);
+          updatePoint(lIntPoint, pIntPoint);
+          m_logicalMultiPairIntersectionPointsNaive.push_back(lIntPoint);
+        }
       }
     }
     m_naiveIterJ++;
@@ -417,13 +417,15 @@ void euclidean_plane::update() {
             m_physicalSweep.advance(m_physicalSweep.Q.nextEventPointPosition());
             point pIntPoint{};
             if (m_physicalSweep.handleEventPoint(m_physicalSweep.Q.getNextEventPoint(), pIntPoint)) {
-              m_physicalMultiPairIntersectionPointsSweep.push_back(pIntPoint); // get next ep, if it is an intersection point add it, if not do nothing
-              sf::CircleShape lIntPoint;
-              lIntPoint.setRadius(intersectionPointsRadius);
-              lIntPoint.setFillColor(sf::Color::Magenta);
-              updatePoint(lIntPoint, pIntPoint);
-              m_logicalMultiPairIntersectionPointsSweep.push_back(lIntPoint);
-              m_drawMultiPairIntersectionsSweep = true;
+              if (!containsPoint(m_physicalMultiPairIntersectionPointsSweep, pIntPoint)) {
+                m_physicalMultiPairIntersectionPointsSweep.push_back(pIntPoint); // get next ep, if it is an intersection point add it, if not do nothing
+                sf::CircleShape lIntPoint;
+                lIntPoint.setRadius(intersectionPointsRadius);
+                lIntPoint.setFillColor(sf::Color::Magenta);
+                updatePoint(lIntPoint, pIntPoint);
+                m_logicalMultiPairIntersectionPointsSweep.push_back(lIntPoint);
+                m_drawMultiPairIntersectionsSweep = true;
+              }
             }
           }
         }
@@ -436,14 +438,18 @@ void euclidean_plane::update() {
     if (!m_physicalSweep.reachedEnd()) {
       if (!m_physicalSweep.Q.empty()) {
         if (abs(m_physicalSweep.position - m_physicalSweep.Q.nextEventPointPosition()) <= m_physicalSweep.scope) {
+          m_physicalSweep.Q.print(); // TEMP TEST
+          m_physicalSweep.T.print(); // TEMP TEST
           point pIntPoint{};
           if (m_physicalSweep.handleEventPoint(m_physicalSweep.Q.getNextEventPoint(), pIntPoint)) {
-            m_physicalMultiPairIntersectionPointsSweep.push_back(pIntPoint); // get next ep, if it is an intersection point add it, if not do nothing
-            sf::CircleShape lIntPoint;
-            lIntPoint.setRadius(intersectionPointsRadius);
-            lIntPoint.setFillColor(sf::Color::Magenta);
-            updatePoint(lIntPoint, pIntPoint);
-            m_logicalMultiPairIntersectionPointsSweep.push_back(lIntPoint);
+            if (!containsPoint(m_physicalMultiPairIntersectionPointsSweep, pIntPoint)) {
+              m_physicalMultiPairIntersectionPointsSweep.push_back(pIntPoint); // get next ep, if it is an intersection point add it, if not do nothing
+              sf::CircleShape lIntPoint;
+              lIntPoint.setRadius(intersectionPointsRadius);
+              lIntPoint.setFillColor(sf::Color::Magenta);
+              updatePoint(lIntPoint, pIntPoint);
+              m_logicalMultiPairIntersectionPointsSweep.push_back(lIntPoint);
+            }
           }
         } else {
           m_physicalSweep.advance();
@@ -460,18 +466,22 @@ void euclidean_plane::update() {
       if (m_drawMultiPairSweepLine) m_drawMultiPairSweepLine = false;
     }
   }
-  /* # ### ######################################################################################################################## ### # *
-   * # ### ######################################################################################################################## ### # *
-   * # ### ######################################################################################################################## ### # */
-  // # ### ############### ### #
-  // # ### Test Zone Start ### #
-  // # ### ############### ### #
+  /* # ### ####################################################################################################################### ### # *|
+  |* # ### #### Test Zone Start ################################################################################################## ### # *|
+  |* # ### ####################################################################################################################### ### # */
   if (m_runTestCode) {
     system("CLS"); // clears the terminal
-    // ____________________________
-    // # ### Write Code Below ### #|
-    // \/\/\/\/\/\/\/\/\/\/\/\/\/\/|
-    /* // EVENT QUEUE FEATURE TEST, SEEMS OK
+    /* # ### preprocessor directive - TEST_OPTION ### #
+     *  (0): elease Option, nothing happens
+     *  (1): event queue feature test
+     *  (2): status structure feature test
+     *  (3): sweep line feature test (setup)
+     */
+#define TEST_OPTION 3
+    /* _____________________________|___________________________________________________________________________________________________ *|
+    |* # ### Write Code Below ### # | |~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|  *|
+    |* _____________________________|___________________________________________________________________________________________________ */
+#if TEST_OPTION == 1 // EVENT QUEUE FEATURE TEST (V)
     event_queue Q{};
     line_segment lineSet{ 69, -69, 96, -96 };
     std::vector<line_segment> qSet{ lineSet };
@@ -505,8 +515,8 @@ void euclidean_plane::update() {
     line_segment lineSet2{ 69, -69, 96, -96 };
     lineSet2.upperEndPoint.print();
     Q.add(lineSet2.upperEndPoint);
-    Q.print();*/
-    /* // STATUS STRACTURE FEATURE TEST, SEEMS OK
+    Q.print();
+#elif TEST_OPTION == 2 // STATUS STRACTURE FEATURE TEST (V)
     point p0{ 0, 300 };
     point p1{ 300, 300 };
     point p2{ 300, -300 };
@@ -526,6 +536,7 @@ void euclidean_plane::update() {
     l4.print();
     line_segment l5{ p0, p6 };
     l5.print();
+
     status_structure T{};
     T.add(&l0);
     T.print();
@@ -539,35 +550,100 @@ void euclidean_plane::update() {
     T.print();
     T.add(&l5);
     T.print();
+
     std::vector<line_segment*> linesToErase1{ &l2, &l4 };
     std::vector<line_segment*> linesToErase2{ &l5 };
     T.erase(linesToErase1, linesToErase2);
     T.print();
-    line_segment l6{ p6,p0 };
-    l6.print();
-    int boolTest{ l5.slope < l6.slope };
-    std::cout << boolTest << '\n';*/
-    // SWEEP FEATURE TEST
+#elif TEST_OPTION == 3 // SWEEP LINE FEATURE TEST (X)
+    std::cout << "naive intersection points:\n";
+    for (point p : m_physicalMultiPairIntersectionPointsNaive) {
+      p.print();
+    }
+    std::cout << "sweep intersection points:\n";
+    for (point p : m_physicalMultiPairIntersectionPointsSweep) {
+      p.print();
+    }
 
+    m_physicalMultiPairSet.clear();
+    m_logicalMultiPairSet.clear();
 
+    m_multiPairSetSize = 8;
+    updateSimulationStateInfo();
 
+    line_segment s{};
+    sf::VertexArray lLine{ sf::Lines, 2 };
+    s.resetID();
 
+    line_segment s0 { -217, 266, 270, -61 }; // s0
+    updateLine(lLine, s0);
+    m_physicalMultiPairSet.push_back(s0);
+    m_logicalMultiPairSet.push_back(lLine);
+    std::cout << s0.name << '\n';
 
+    line_segment s1{ -153, 188, -187, -52 }; // s1
+    updateLine(lLine, s1);
+    m_physicalMultiPairSet.push_back(s1);
+    m_logicalMultiPairSet.push_back(lLine);
+    std::cout << s1.name << '\n';
 
+    line_segment s2{ -103, 16, 129, -222 }; // s2
+    updateLine(lLine, s2);
+    m_physicalMultiPairSet.push_back(s2);
+    m_logicalMultiPairSet.push_back(lLine);
+    std::cout << s2.name << '\n';
 
+    line_segment s3{ -213, 82, -272, 37 }; // s3
+    updateLine(lLine, s3);
+    m_physicalMultiPairSet.push_back(s3);
+    m_logicalMultiPairSet.push_back(lLine);
+    std::cout << s3.name << '\n';
 
+    line_segment s4{ 270, 43, -300, 44 }; // s4
+    updateLine(lLine, s4);
+    m_physicalMultiPairSet.push_back(s4);
+    m_logicalMultiPairSet.push_back(lLine);
+    std::cout << s4.name << '\n';
 
-    // /\/\/\/\/\/\/\/\/\/\/\/\/\/\|
-    // # ### Write Code Above ### #|
-    // ____________________________|
+    line_segment s5{ 180, 79, 89, 68 }; // s5
+    updateLine(lLine, s5);
+    m_physicalMultiPairSet.push_back(s5);
+    m_logicalMultiPairSet.push_back(lLine);
+    std::cout << s5.name << '\n';
+
+    line_segment s6{ -159, -60, -103, 82 }; // s6
+    updateLine(lLine, s6);
+    m_physicalMultiPairSet.push_back(s6);
+    m_logicalMultiPairSet.push_back(lLine);
+    std::cout << s6.name << '\n';
+
+    line_segment s7{ 8, -35, 35, -271 }; // s7
+    updateLine(lLine, s7);
+    m_physicalMultiPairSet.push_back(s7);
+    m_logicalMultiPairSet.push_back(lLine);
+    std::cout << s7.name << '\n';
+
+    if (m_multiPairTrashed) m_multiPairTrashed = false;
+    if (m_drawMultiPairIntersectionsNaive) m_drawMultiPairIntersectionsNaive = false;
+    if (m_drawMultiPairIntersectionsSweep) m_drawMultiPairIntersectionsSweep = false;
+    if (m_drawMultiPairSweepLine) m_drawMultiPairSweepLine = false;
+    if (m_currentlyCalculatingIntersectionsNaive) m_currentlyCalculatingIntersectionsNaive = false;
+    if (m_currentlyCalculatingIntersectionsSweep && !m_lastSweptSinglePair) m_currentlyCalculatingIntersectionsSweep = false;
+
+    std::cout << "custom lines created\n";
+#elif TEST_OPTION == 4 // PRINT LINE SEGMENT INFO
+    for (line_segment lineSeg : m_physicalMultiPairSet) {
+      lineSeg.print();
+    }
+#endif
+    /* _____________________________|___________________________________________________________________________________________________ *|
+    |* # ### Write Code Above ### # | |~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|  *|
+    |* _____________________________|___________________________________________________________________________________________________ */
     m_runTestCode = false;
   }
-  // # ### ############### ### #
-  // # ###  Test Zone End  ### #
-  // # ### ############### ### #
-  /* # ### ######################################################################################################################## ### # *
-   * # ### ######################################################################################################################## ### # *
-   * # ### ######################################################################################################################## ### # */
+  /* # ### ####################################################################################################################### ### # *|
+  |* # ### #### Test Zone End #################################################################################################### ### # *|
+  |* # ### ####################################################################################################################### ### # */
   return;
 }
 
@@ -778,6 +854,11 @@ void euclidean_plane::updateMultiPairSetSize(bool increase) {
       m_genNewSetOfLines = true;
     }
   }
+}
+
+bool euclidean_plane::containsPoint(std::vector<point>& vec, point& p) {
+  for (point pVec : vec) if (p.eq(pVec)) return true;
+  return false;
 }
 
 float euclidean_plane::orientation(point a, point b, point c) {
