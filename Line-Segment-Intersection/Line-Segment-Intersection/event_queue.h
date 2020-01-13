@@ -21,7 +21,7 @@ public:
 	void initialize();
 	void add(const event_point intersectionEventPoint);
 	event_point getNextEventPoint();
-	float nextEventPointPosition();
+	double nextEventPointPosition();
 	bool contains(event_point& epNew);
 	bool empty();
 	void clear();

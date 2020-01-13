@@ -14,13 +14,13 @@ class line_segment {
 // Constructors & Destructor
 public:
 	line_segment(const point &p, const point &q);
-	line_segment(const float& px = 0, const float& py = 0, const float& qx = 0, const float& qy = 0);
+	line_segment(const double& px = 0, const double& py = 0, const double& qx = 0, const double& qy = 0);
 	~line_segment();
 
 // Member Functions
 public:
 	void update(const point& p, const point& q);
-	void update(const float& px, const float& py, const float& qx, const float& qy);
+	void update(const double& px, const double& py, const double& qx, const double& qy);
 	void print();
 	bool eq(const line_segment& l);
 	bool parallel(const line_segment& l);
@@ -29,12 +29,12 @@ public:
 	bool contains(const point& k);
 	bool partially_intersects(const line_segment& l, point& k);
 	bool intersects(line_segment& l, point& k);
-	float solveForX(float y);
-	float solveForY(float x);
+	double solveForX(double y);
+	double solveForY(double x);
 	void resetID();
 private:
-	float calcSlope();
-	float calcYIntercept();
+	double calcSlope();
+	double calcYIntercept();
 	void calcEndPointsAndBoundaries();
 
 // Member Variables
@@ -43,12 +43,12 @@ public:
 	point q;
 	point upperEndPoint;
 	point lowerEndPoint;
-	float slope;
-	float yIntercept;
-	float xMin;
-	float xMax;
-	float yMin;
-	float yMax;
+	double slope;
+	double yIntercept;
+	double xMin;
+	double xMax;
+	double yMin;
+	double yMax;
 	std::string name;
 	static unsigned int uniqueID;
 };

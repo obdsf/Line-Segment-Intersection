@@ -23,15 +23,15 @@ status_structure::status_structure()
 status_structure::~status_structure() {}
 
 // Member Functions
-void status_structure::add(line_segment* lineSegToAdd, bool useMinorStep, float position) {
-  float yValue{ lineSegToAdd->upperEndPoint.y };
-  if (useMinorStep) yValue = position - precision;
+void status_structure::add(line_segment* lineSegToAdd, bool useMinorStep, double position) {
+  double yValue{ lineSegToAdd->upperEndPoint.y };
+  if (useMinorStep) yValue = position - yValuePrecision;
   auto it = m_status.begin();
   for (line_segment* lineSeg : m_status) {
-    float lineSegToAddX{ lineSegToAdd->solveForX(yValue) };
-    float lineSegX{ lineSeg->solveForX(yValue) };
-    float lineSegToAddSlope{ lineSegToAdd->slope };
-    float lineSegSlope{ lineSeg->slope };
+    double lineSegToAddX{ lineSegToAdd->solveForX(yValue) };
+    double lineSegX{ lineSeg->solveForX(yValue) };
+    double lineSegToAddSlope{ lineSegToAdd->slope };
+    double lineSegSlope{ lineSeg->slope };
     if (lineSegToAddX < lineSegX) break; // horizontal segments are inserted last (solveForX Implementation ensures this)
     else if (lineSegToAddX == lineSegX) {
       if (lineSegToAddSlope > 0) {
@@ -60,11 +60,11 @@ void status_structure::find(std::vector<line_segment*>& linesL, std::vector<line
   for (line_segment* lineSeg : m_status) {
     if (lineSeg->lowerEndPoint.eq(ep.p)) {
       linesL.push_back(lineSeg);
-      std::cout << "lower end point: " << lineSeg->name << '\n'; // TEMP TEST
+      //std::cout << "lower end point: " << lineSeg->name << '\n'; // TEMP TEST
       consecutiveLinesChainBroke = true;
     } else if (lineSeg->contains(ep.p)) {
       linesC.push_back(lineSeg);
-      std::cout << "contains: " << lineSeg->name << '\n'; // TEMP TEST
+      //std::cout << "contains: " << lineSeg->name << '\n'; // TEMP TEST
       consecutiveLinesChainBroke = true;
     } else if (consecutiveLinesChainBroke) break;
   }
@@ -74,8 +74,8 @@ void status_structure::find(std::vector<line_segment*>& linesL, std::vector<line
 bool status_structure::findAdjacentSegments(line_segment*& leftSeg, line_segment*& rightSeg, event_point& ep) {
   if (m_status.empty()) return false; // found no adjacent segments, both segment pointers are invalid (the numeric value of true is 0)
   bool foundRight{ false };
-  float epyValue{ ep.p.y };
-  float epxValue{ ep.p.x };
+  double epyValue{ ep.p.y };
+  double epxValue{ ep.p.x };
   int leftIter{ -1 };
   for (line_segment* lineSeg : m_status) {
     if (lineSeg->solveForX(epyValue) > epxValue) {
@@ -102,10 +102,10 @@ int status_structure::findBoundariesOfUnion(line_segment*& leftSeg, line_segment
                                             line_segment*& rightmostSeg, line_segment*& rightSeg,
                                             std::vector<line_segment*>& linesU, std::vector<line_segment*>& linesC,
                                             event_point& ep) {
-  std::cout << "union " << ++debuggingUnionCounter << '\n'; // TEMP TEST
-  float yValue{ ep.p.y - precision }; // prevents re-calculation
+  //std::cout << "union " << ++debuggingUnionCounter << '\n'; // TEMP TEST
+  double yValue{ ep.p.y - yValuePrecision }; // prevents re-calculation
   if (linesU.empty()) { // linesC has both boundaries
-    std::cout << "findBoundariesOfUnion: linesU is empty\n"; // TEMP TEST
+    //std::cout << "findBoundariesOfUnion: linesU is empty\n"; // TEMP TEST
     leftmostSeg = linesC.front();
     rightmostSeg = linesC.back();
     for (line_segment* lineSeg : linesC) {
@@ -113,7 +113,7 @@ int status_structure::findBoundariesOfUnion(line_segment*& leftSeg, line_segment
       else if (lineSeg->solveForX(yValue) > rightmostSeg->solveForX(yValue)) rightmostSeg = lineSeg;
     }
   } else if (linesC.empty()) { // linesU has both boundaries
-    std::cout << "findBoundariesOfUnion: linesC is empty\n"; // TEMP TEST
+    //std::cout << "findBoundariesOfUnion: linesC is empty\n"; // TEMP TEST
     leftmostSeg = linesU.front();
     rightmostSeg = linesU.back();
     for (line_segment* lineSeg : linesU) {
@@ -121,7 +121,7 @@ int status_structure::findBoundariesOfUnion(line_segment*& leftSeg, line_segment
       else if (lineSeg->solveForX(yValue) > rightmostSeg->solveForX(yValue)) rightmostSeg = lineSeg;
     }
   } else { // not sure which set has the left and right boundary
-    std::cout << "findBoundariesOfUnion: both sets NOT empty\n"; // TEMP TEST
+    //std::cout << "findBoundariesOfUnion: both sets NOT empty\n"; // TEMP TEST
     leftmostSeg = linesC.front();
     rightmostSeg = linesU.back();
     for (line_segment* lineSeg : linesC) {

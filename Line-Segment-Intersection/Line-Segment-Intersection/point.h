@@ -13,17 +13,17 @@ class line_segment;
 class point {
 public:
 	// Constructors & Destructor
-	point(const float& x = 0, const float& y = 0);
+	point(const double& x = 0, const double& y = 0);
 	~point();
 	// Member Functions
 	void update(const point& p);
-	void update(const float& x, const float& y);
+	void update(const double& x, const double& y);
 	void print();
 	bool eq(const point& p);
 	void setLineSeg(line_segment& newLineSeg);
 	// Member Variables
-	float x;
-	float y;
+	double x;
+	double y;
 	line_segment* lineSeg;
 
 private:

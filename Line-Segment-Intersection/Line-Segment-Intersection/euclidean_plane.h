@@ -96,6 +96,9 @@ private:
   bool m_toggleNaiveIntersections;
   bool m_toggleSweepIntersections;
 
+  bool m_toggleReadWriteMode;
+  bool m_executeReadWriteOperation;
+
   bool m_runTestCode;
 
   // States
@@ -126,6 +129,8 @@ private:
   bool m_currentlyCalculatingIntersectionsNaive;
   bool m_currentlyCalculatingIntersectionsSweep;
 
+  bool m_currentlyInReadMode;
+
   // Iterators
   int m_multiPairSetSize;
   int m_naiveIterI;
@@ -134,6 +139,11 @@ private:
   // Random Numbers
   std::default_random_engine m_generator;
   std::uniform_int_distribution<int> m_distribution;
+
+  // Other
+  std::string m_saveFileName;
+  int m_saveFileNumber;
+  std::string m_saveFileExtension;
 
 // # ### Class Member Functions # ###
 public:
@@ -157,7 +167,8 @@ private:
   void updateStatistics(sf::Time elapsedTime);
   void updateSimulationStateInfo();
   void updateMultiPairSetSize(bool increase);
+  void readWriteMultiPairSetToFile();
 
   bool containsPoint(std::vector<point>& vec, point& p);
-  float orientation(point a, point b, point c);
+  double orientation(point a, point b, point c);
 };

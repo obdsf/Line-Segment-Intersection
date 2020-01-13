@@ -3,9 +3,13 @@
 
 // STL : Standard Template Library
 #include <iostream>
+#include <fstream>
 #include <random>
 #include <vector>
 // Boost Library
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
+#include <boost/algorithm/string/erase.hpp>
 // SFML : Simple and Fast Multimedia Library
 #include <SFML/Graphics.hpp>
 // Custom Headers
@@ -47,6 +51,7 @@ euclidean_plane::euclidean_plane()
   , m_toggleSimulationMode{ false }, m_toggleHide{ false }, m_eraseCurrentSet{ false }
   , m_toggleCalculationMode{ false }, m_toggleUpdateMode{ false }, m_toggleAdvancedInfo{ false }
   , m_toggleNaiveIntersections{ false }, m_toggleSweepIntersections{ false }
+  , m_toggleReadWriteMode{ false }, m_executeReadWriteOperation{ false }
   , m_runTestCode{ false }
   , m_drawSinglePairIntersectionNaive{ false }, m_drawSinglePairIntersectionSweep{ false }
   , m_drawMultiPairIntersectionsNaive{ false }, m_drawMultiPairIntersectionsSweep{ false }
@@ -56,7 +61,9 @@ euclidean_plane::euclidean_plane()
   , m_singlePairMode{ true }, m_singlePairTrashed{ true }, m_multiPairTrashed{ true }
   , m_fancyCalculationMode{ true }, m_lastSweptSinglePair{ true }, m_useUpdateLimiter{ false }
   , m_currentlyCalculatingIntersectionsNaive{ false }, m_currentlyCalculatingIntersectionsSweep{ false }
+  , m_currentlyInReadMode{ true }
   , m_multiPairSetSize{ 25 }, m_naiveIterI{ 0 }, m_naiveIterJ{ 0 }, m_distribution{ distMin, distMax }
+  , m_saveFileName{ "saves/multiple-pair-line-segment-set-" }, m_saveFileNumber{}, m_saveFileExtension{ ".dat" }
 {
   m_xAxis[0].position = sf::Vector2f(leftMargin, yBias);
   m_xAxis[1].position = sf::Vector2f(windowWidth - leftMargin, yBias);
@@ -404,8 +411,8 @@ void euclidean_plane::update() {
         m_physicalSweep.Q.clear();
         m_physicalSweep.Q.initialize();
         m_physicalSweep.T.clear();
-        debuggingUnionCounter = 0; // TEMP TEST TEMP TEST TEMP TEST
-        system("CLS"); // TEMP TEST TEMP TEST TEMP TEST
+        //debuggingUnionCounter = 0; // TEMP TEST TEMP TEST TEMP TEST
+        //system("CLS"); // TEMP TEST TEMP TEST TEMP TEST
         m_drawMultiPairIntersectionsSweep = false;
         m_drawSinglePairSweepLine = false;
         if (m_fancyCalculationMode) {
@@ -438,8 +445,8 @@ void euclidean_plane::update() {
     if (!m_physicalSweep.reachedEnd()) {
       if (!m_physicalSweep.Q.empty()) {
         if (abs(m_physicalSweep.position - m_physicalSweep.Q.nextEventPointPosition()) <= m_physicalSweep.scope) {
-          m_physicalSweep.Q.print(); // TEMP TEST
-          m_physicalSweep.T.print(); // TEMP TEST
+          //m_physicalSweep.Q.print(); // TEMP TEST
+          //m_physicalSweep.T.print(); // TEMP TEST
           point pIntPoint{};
           if (m_physicalSweep.handleEventPoint(m_physicalSweep.Q.getNextEventPoint(), pIntPoint)) {
             if (!containsPoint(m_physicalMultiPairIntersectionPointsSweep, pIntPoint)) {
@@ -465,6 +472,19 @@ void euclidean_plane::update() {
       if (m_drawSinglePairSweepLine) m_drawSinglePairSweepLine = false;
       if (m_drawMultiPairSweepLine) m_drawMultiPairSweepLine = false;
     }
+  }
+  // toggle read/write mode
+  if (m_toggleReadWriteMode) {
+    if (m_currentlyInReadMode) m_currentlyInReadMode = false;
+    else m_currentlyInReadMode = true;
+    m_toggleReadWriteMode = false;
+    if (m_currentlyInReadMode) std::cout << "read mode\n";
+    else std::cout << "write mode\n";
+  }
+  // read write save files
+  if (m_executeReadWriteOperation) {
+    readWriteMultiPairSetToFile();
+    m_executeReadWriteOperation = false;
   }
   /* # ### ####################################################################################################################### ### # *|
   |* # ### #### Test Zone Start ################################################################################################## ### # *|
@@ -635,6 +655,8 @@ void euclidean_plane::update() {
     for (line_segment lineSeg : m_physicalMultiPairSet) {
       lineSeg.print();
     }
+#elif TEST_OPTION == 5 // OTHER
+    std::cout << yValuePrecision;
 #endif
     /* _____________________________|___________________________________________________________________________________________________ *|
     |* # ### Write Code Above ### # | |~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|  *|
@@ -727,7 +749,7 @@ void euclidean_plane::render() {
 }
 
 void euclidean_plane::handleUserInput(sf::Keyboard::Key key, bool isPressed) {
-  // Check while in Any mode
+  // check while in Any mode
   if (key == sf::Keyboard::Escape && isPressed) m_exit = true;
   if (key == sf::Keyboard::Space && isPressed) m_genNewSetOfLines = true;
   if (key == sf::Keyboard::Q && isPressed) m_toggleUpdateMode = true;
@@ -741,22 +763,60 @@ void euclidean_plane::handleUserInput(sf::Keyboard::Key key, bool isPressed) {
   if (key == sf::Keyboard::Z && isPressed) m_toggleNaiveIntersections = true;
   if (key == sf::Keyboard::X && isPressed) m_toggleSweepIntersections = true;
   if (key == sf::Keyboard::C && isPressed) m_calcIntersectionsNaive = true;
-  // Check only when in Multi Pair mode
+  // check only when in Multi Pair mode
   if (!m_singlePairMode) {
     if (key == sf::Keyboard::Up && isPressed) updateMultiPairSetSize(true);
     if (key == sf::Keyboard::Down && isPressed) updateMultiPairSetSize(false);
   }
+  // multi pair set saves (1-9)
+  if (key == sf::Keyboard::Numpad1 && isPressed) {
+    m_executeReadWriteOperation = true;
+    m_saveFileNumber = 1;
+  }
+  if (key == sf::Keyboard::Numpad2 && isPressed) {
+    m_executeReadWriteOperation = true;
+    m_saveFileNumber = 2;
+  }
+  if (key == sf::Keyboard::Numpad3 && isPressed) {
+    m_executeReadWriteOperation = true;
+    m_saveFileNumber = 3;
+  }
+  if (key == sf::Keyboard::Numpad4 && isPressed) {
+    m_executeReadWriteOperation = true;
+    m_saveFileNumber = 4;
+  }
+  if (key == sf::Keyboard::Numpad5 && isPressed) {
+    m_executeReadWriteOperation = true;
+    m_saveFileNumber = 5;
+  }
+  if (key == sf::Keyboard::Numpad6 && isPressed) {
+    m_executeReadWriteOperation = true;
+    m_saveFileNumber = 6;
+  }
+  if (key == sf::Keyboard::Numpad7 && isPressed) {
+    m_executeReadWriteOperation = true;
+    m_saveFileNumber = 7;
+  }
+  if (key == sf::Keyboard::Numpad8 && isPressed) {
+    m_executeReadWriteOperation = true;
+    m_saveFileNumber = 8;
+  }
+  if (key == sf::Keyboard::Numpad9 && isPressed) {
+    m_executeReadWriteOperation = true;
+    m_saveFileNumber = 9;
+  }
+  if (key == sf::Keyboard::T && isPressed) m_toggleReadWriteMode = true;
   // test code
-  if (key == sf::Keyboard::Numpad0) m_runTestCode = true;
+  if (key == sf::Keyboard::Numpad0 && isPressed) m_runTestCode = true;
   return;
 }
 
 void euclidean_plane::genNewLine(line_segment& physicalLine) {
   physicalLine.update(
-    (float)m_distribution(m_generator),
-    (float)m_distribution(m_generator),
-    (float)m_distribution(m_generator),
-    (float)m_distribution(m_generator)
+    m_distribution(m_generator),
+    m_distribution(m_generator),
+    m_distribution(m_generator),
+    m_distribution(m_generator)
   );
   return;
 }
@@ -856,11 +916,53 @@ void euclidean_plane::updateMultiPairSetSize(bool increase) {
   }
 }
 
+void euclidean_plane::readWriteMultiPairSetToFile() {
+  if (m_physicalMultiPairSet.empty()) return;
+  std::string fileName{ m_saveFileName + toString(m_saveFileNumber) + m_saveFileExtension };
+  if (m_currentlyInReadMode) {
+    std::ifstream fileToRead{ fileName };
+    if (!fileToRead) {
+      std::cout << "file could not be read\n";
+      return;
+    }
+    m_physicalMultiPairSet.clear();
+    while (fileToRead) {
+      std::string strInput{};
+      getline(fileToRead, strInput);
+      std::vector<std::string> strResult;
+      boost::split(strResult, strInput, boost::is_any_of("\t"));
+      boost::erase_first(strResult.at(3), "\n");
+      int px{ boost::lexical_cast<int>(strResult.at(0)) };
+      int py{ boost::lexical_cast<int>(strResult.at(1)) };
+      int qx{ boost::lexical_cast<int>(strResult.at(2)) };
+      int qy{ boost::lexical_cast<int>(strResult.at(3)) };
+      line_segment lineSeg{ (double)px, (double)py, (double)qx, (double)qy };
+      m_physicalMultiPairSet.push_back(lineSeg);
+    }
+    std::cout << "line segments loaded successfully\n";
+  } else {
+    std::ofstream fileToWrite{ fileName };
+    if (!fileToWrite) {
+      std::cout << "could not write to file\n";
+      return;
+    }
+    for (line_segment lineSeg : m_physicalMultiPairSet) {
+      fileToWrite
+        << lineSeg.p.x << ' '
+        << lineSeg.p.y << ' '
+        << lineSeg.q.x << ' '
+        << lineSeg.q.y << std::endl;
+    }
+    std::cout << "line segments saved successfully\n";
+  }
+  return;
+}
+
 bool euclidean_plane::containsPoint(std::vector<point>& vec, point& p) {
   for (point pVec : vec) if (p.eq(pVec)) return true;
   return false;
 }
 
-float euclidean_plane::orientation(point a, point b, point c) {
+double euclidean_plane::orientation(point a, point b, point c) {
   return (b.y - a.y) * (c.x - b.x) - (c.y - b.y) * (b.x - a.x);
 }

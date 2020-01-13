@@ -46,7 +46,7 @@ void sweep_line::advance() {
   return;
 }
 
-void sweep_line::advance(const float& position) {
+void sweep_line::advance(const double& position) {
   if (position >= m_start && position <= m_end) {
     sweep.p.y = position;
     sweep.q.y = position;
@@ -73,12 +73,12 @@ bool sweep_line::handleEventPoint(event_point ep, point& intersectionPoint) {
     epIsIntersectionPoint = true; // "then report p as an intersection"
     intersectionPoint = ep.p;
 
-    std::cout << "found intersection!"; // TEMP TEST
-    ep.p.print(); // TEMP TEST
+    //std::cout << "found intersection!"; // TEMP TEST
+    //ep.p.print(); // TEMP TEST
   }
   T.erase(linesL, linesC); // "Delete the segments in the union of L(p) and C(p) from T"
   for (line_segment* lineSeg : ep.linesU) { // "Insert the segments in U(p) into T"
-    std::cout << "upper end point: " << lineSeg->name << '\n'; // TEMP TEST
+    //std::cout << "upper end point: " << lineSeg->name << '\n'; // TEMP TEST
     T.add(lineSeg);
   }
   for (line_segment* lineSeg : linesC) { // "Insert the segments in C(p) into T"
@@ -104,15 +104,15 @@ bool sweep_line::handleEventPoint(event_point ep, point& intersectionPoint) {
     line_segment* rightmostSeg{ nullptr };
     line_segment* rightSeg{ nullptr };
     int kappa{ T.findBoundariesOfUnion(leftSeg, leftmostSeg, rightmostSeg, rightSeg, ep.linesU, linesC, ep) };
-    std::cout << "kappa: " << kappa << '\n'; // TEMP TEST
+    //std::cout << "kappa: " << kappa << '\n'; // TEMP TEST
     /*kappa == 1 || kappa == 3*/
     if (leftSeg != nullptr && leftmostSeg != nullptr) {
-      std::cout << "left side: leftSeg: " << leftSeg->name << ", leftmostSeg: " << leftmostSeg->name << '\n'; // TEMP TEST
+      //std::cout << "left side: leftSeg: " << leftSeg->name << ", leftmostSeg: " << leftmostSeg->name << '\n'; // TEMP TEST
       findNewEvent(*leftSeg, *leftmostSeg, ep); // conditions checked ensure pointers are not null
     }
     /*kappa == 1 || kappa == 2*/
     if (rightmostSeg != nullptr && rightSeg != nullptr) {
-      std::cout << "right side: rightmostSeg: " << rightmostSeg->name << ", rightSeg: " << rightSeg->name << '\n'; // TEMP TEST
+      //std::cout << "right side: rightmostSeg: " << rightmostSeg->name << ", rightSeg: " << rightSeg->name << '\n'; // TEMP TEST
       findNewEvent(*rightmostSeg, *rightSeg, ep); // conditions checked ensure pointers are not null
     }
   }
@@ -121,15 +121,15 @@ bool sweep_line::handleEventPoint(event_point ep, point& intersectionPoint) {
 
 void sweep_line::findNewEvent(line_segment& leftSeg, line_segment& rightSeg, event_point& ep) {
   point intersectionPoint{};
-  std::cout << "trying to find new event...\n"; // TEMP TEST
+  //std::cout << "trying to find new event...\n"; // TEMP TEST
   if (leftSeg.intersects(rightSeg, intersectionPoint)) {
-    std::cout << "trying harder...\n"; // TEMP TEST
+    //std::cout << "trying harder...\n"; // TEMP TEST
     if (intersectionPoint.y < ep.p.y || intersectionPoint.y == ep.p.y && intersectionPoint.x > ep.p.x) {
-      std::cout << "trying harderer...\n"; // TEMP TEST
+      //std::cout << "trying harderer...\n"; // TEMP TEST
       event_point epNew{ intersectionPoint };
       if (!Q.contains(epNew)) {
         Q.add(epNew);
-        std::cout << "new event FOUND!\n"; // TEMP TEST
+        //std::cout << "new event FOUND!\n"; // TEMP TEST
       }
     }
   }

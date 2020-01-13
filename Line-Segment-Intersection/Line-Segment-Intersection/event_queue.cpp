@@ -88,7 +88,7 @@ event_point event_queue::getNextEventPoint() {
   return nextEventPoint;
 }
 
-float event_queue::nextEventPointPosition() {
+double event_queue::nextEventPointPosition() {
   if (m_queue.empty()) return NULL;
   else return m_queue.back().p.y;
 }

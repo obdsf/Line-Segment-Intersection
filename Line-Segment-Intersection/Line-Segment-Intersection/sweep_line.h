@@ -22,7 +22,7 @@ public:
 public:
 	void reset();
 	void advance();
-	void advance(const float& position);
+	void advance(const double& position);
 	bool reachedEnd();
 	bool handleEventPoint(event_point ep, point& intersectionPoint);
 	void findNewEvent(line_segment& leftSeg, line_segment& rightSeg, event_point& ep);
@@ -35,10 +35,10 @@ public:
 	status_structure T;
 private:
 	//std::vector<point>* m_intersectionPointSet; // Soon to be removed
-	float m_step;
+	double m_step;
 	int m_start;
 	int m_end;
 public:
-	float position;
-	float scope;
+	double position;
+	double scope;
 };

@@ -24,7 +24,7 @@ line_segment::line_segment(const point& p, const point& q)
 	this->q.setLineSeg(*this);
 }
 
-line_segment::line_segment(const float& px, const float& py, const float& qx, const float& qy)
+line_segment::line_segment(const double& px, const double& py, const double& qx, const double& qy)
 	: p{ px, py }, q{ qx, qy }, slope{ calcSlope() }, yIntercept{ calcYIntercept() }
 	, name{ "ls" + std::to_string(uniqueID++) }
 {
@@ -47,7 +47,7 @@ void line_segment::update(const point& p, const point& q) {
 	return;
 }
 
-void line_segment::update(const float& px, const float& py, const float& qx, const float& qy) {
+void line_segment::update(const double& px, const double& py, const double& qx, const double& qy) {
 	p.update(px, py);
 	q.update(qx, qy);
 	p.setLineSeg(*this);
@@ -106,7 +106,7 @@ bool line_segment::contains(const point& k) {
 }
 
 bool line_segment::partially_intersects(const line_segment& l, point& k) {
-	float x, y;
+	double x, y;
 	if (parallel(l)) {
 		if (isinf(slope)) {
 			if (l.p.x != p.x) return false;
@@ -157,7 +157,7 @@ bool line_segment::intersects(line_segment& l, point& k) {
 	return false;
 }
 
-float line_segment::solveForX(float y) {
+double line_segment::solveForX(double y) {
 	if (isinf(slope)) return p.x;
 	else if (slope == 0) return FLT_MAX;
 	/* returning NULL is technically the right choice since mathematically
@@ -170,7 +170,7 @@ float line_segment::solveForX(float y) {
 	else return (y - yIntercept) / slope;
 }
 
-float line_segment::solveForY(float x) {
+double line_segment::solveForY(double x) {
 	if (isinf(slope)) return FLT_MIN;
 	/* returning INT_MIN is not mathematically correct but it is done in
 	 * order to be consistent with the solveForX function
@@ -180,11 +180,11 @@ float line_segment::solveForY(float x) {
 	else return slope * x + yIntercept;
 }
 
-float line_segment::calcSlope() {
+double line_segment::calcSlope() {
 	return (q.y - p.y) / (q.x - p.x);
 }
 
-float line_segment::calcYIntercept() {
+double line_segment::calcYIntercept() {
 	if (isinf(slope)) return p.x;
 	return p.y - p.x * slope;
 }

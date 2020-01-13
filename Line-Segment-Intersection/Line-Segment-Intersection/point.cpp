@@ -11,7 +11,7 @@
 // # ### #################################################################################### ### #
 
 // Constructors & Destructor
-point::point(const float& x, const float& y)
+point::point(const double& x, const double& y)
 	:x{ x }, y{ y }, lineSeg{ nullptr }
 {}
 
@@ -23,7 +23,7 @@ void point::update(const point& p) {
 	y = p.y;
 }
 
-void point::update(const float& x, const float& y) {
+void point::update(const double& x, const double& y) {
 	this->x = x;
 	this->y = y;
 }

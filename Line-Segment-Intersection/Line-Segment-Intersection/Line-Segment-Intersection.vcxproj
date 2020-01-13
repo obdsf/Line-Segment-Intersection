@@ -80,6 +80,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>D:\obdsf\Code\Libraries\C++\SFML\SFML-2.5.1\32-bit\SFML-2.5.1\include;D:\obdsf\Code\Libraries\C++\Boost\CurrentLiveVersion;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -91,6 +92,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>D:\obdsf\Code\Libraries\C++\SFML\SFML-2.5.1\64-bit\SFML-2.5.1\include;D:\obdsf\Code\Libraries\C++\Boost\CurrentLiveVersion;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -104,6 +106,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>D:\obdsf\Code\Libraries\C++\SFML\SFML-2.5.1\32-bit\SFML-2.5.1\include;D:\obdsf\Code\Libraries\C++\Boost\CurrentLiveVersion;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -119,6 +122,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
+      <AdditionalIncludeDirectories>D:\obdsf\Code\Libraries\C++\SFML\SFML-2.5.1\64-bit\SFML-2.5.1\include;D:\obdsf\Code\Libraries\C++\Boost\CurrentLiveVersion;</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
