@@ -150,6 +150,17 @@
     <ClInclude Include="status_structure.h" />
     <ClInclude Include="sweep_line.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="saves\multiple-pair-line-segment-set-1.dat" />
+    <None Include="saves\multiple-pair-line-segment-set-2.dat" />
+    <None Include="saves\multiple-pair-line-segment-set-3.dat" />
+    <None Include="saves\multiple-pair-line-segment-set-4.dat" />
+    <None Include="saves\multiple-pair-line-segment-set-5.dat" />
+    <None Include="saves\multiple-pair-line-segment-set-6.dat" />
+    <None Include="saves\multiple-pair-line-segment-set-7.dat" />
+    <None Include="saves\multiple-pair-line-segment-set-8.dat" />
+    <None Include="saves\multiple-pair-line-segment-set-9.dat" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

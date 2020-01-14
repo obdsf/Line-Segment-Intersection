@@ -10,6 +10,7 @@
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/erase.hpp>
+#include <boost/algorithm/string/find.hpp>
 // SFML : Simple and Fast Multimedia Library
 #include <SFML/Graphics.hpp>
 // Custom Headers
@@ -576,20 +577,17 @@ void euclidean_plane::update() {
     T.erase(linesToErase1, linesToErase2);
     T.print();
 #elif TEST_OPTION == 3 // SWEEP LINE FEATURE TEST (X)
-    std::cout << "naive intersection points:\n";
-    for (point p : m_physicalMultiPairIntersectionPointsNaive) {
-      p.print();
-    }
-    std::cout << "sweep intersection points:\n";
-    for (point p : m_physicalMultiPairIntersectionPointsSweep) {
-      p.print();
-    }
+    //std::cout << "naive intersection points:\n";
+    //for (point p : m_physicalMultiPairIntersectionPointsNaive) {
+    //  p.print();
+    //}
+    //std::cout << "sweep intersection points:\n";
+    //for (point p : m_physicalMultiPairIntersectionPointsSweep) {
+    //  p.print();
+    //}
 
     m_physicalMultiPairSet.clear();
     m_logicalMultiPairSet.clear();
-
-    m_multiPairSetSize = 8;
-    updateSimulationStateInfo();
 
     line_segment s{};
     sf::VertexArray lLine{ sf::Lines, 2 };
@@ -642,6 +640,9 @@ void euclidean_plane::update() {
     m_physicalMultiPairSet.push_back(s7);
     m_logicalMultiPairSet.push_back(lLine);
     std::cout << s7.name << '\n';
+
+    m_multiPairSetSize = m_physicalMultiPairSet.size();
+    updateSimulationStateInfo();
 
     if (m_multiPairTrashed) m_multiPairTrashed = false;
     if (m_drawMultiPairIntersectionsNaive) m_drawMultiPairIntersectionsNaive = false;
@@ -917,36 +918,59 @@ void euclidean_plane::updateMultiPairSetSize(bool increase) {
 }
 
 void euclidean_plane::readWriteMultiPairSetToFile() {
-  if (m_physicalMultiPairSet.empty()) return;
-  std::string fileName{ m_saveFileName + toString(m_saveFileNumber) + m_saveFileExtension };
-  if (m_currentlyInReadMode) {
+  std::string fileName{ m_saveFileName + toString(m_saveFileNumber) + m_saveFileExtension }; // the name of the file to read/write from/to
+  if (m_currentlyInReadMode) { // read from file
     std::ifstream fileToRead{ fileName };
-    if (!fileToRead) {
+    if (!fileToRead) { // if file doesn't exist or permissions are not granted
       std::cout << "file could not be read\n";
       return;
     }
-    m_physicalMultiPairSet.clear();
-    while (fileToRead) {
-      std::string strInput{};
-      getline(fileToRead, strInput);
-      std::vector<std::string> strResult;
-      boost::split(strResult, strInput, boost::is_any_of("\t"));
-      boost::erase_first(strResult.at(3), "\n");
-      int px{ boost::lexical_cast<int>(strResult.at(0)) };
-      int py{ boost::lexical_cast<int>(strResult.at(1)) };
-      int qx{ boost::lexical_cast<int>(strResult.at(2)) };
-      int qy{ boost::lexical_cast<int>(strResult.at(3)) };
-      line_segment lineSeg{ (double)px, (double)py, (double)qx, (double)qy };
-      m_physicalMultiPairSet.push_back(lineSeg);
+    m_physicalMultiPairSet.clear(); // clear physical set
+    m_logicalMultiPairSet.clear(); // clear logical set
+    { line_segment ls{}; ls.resetID(); } // reset line segment unique IDs
+    while (fileToRead) { // haven't reached the end of file (EOF)
+      std::string strInput{}; // input string
+      getline(fileToRead, strInput); // whole line (without new line character)
+      if (strInput.find('!') != strInput.npos || strInput.find("\/\/") != strInput.npos) continue;
+      std::vector<std::string> strResult; // result string vector
+      boost::split(strResult, strInput, boost::is_any_of(" ")); // split string and push back each parced string in above vector
+      if (strResult.size() != 4) continue; // if line segment is not represented correctly
+      try { // try creating the physical line
+        int px{ boost::lexical_cast<int>(strResult.at(0)) }; // create px
+        int py{ boost::lexical_cast<int>(strResult.at(1)) }; // create py
+        int qx{ boost::lexical_cast<int>(strResult.at(2)) }; // create qx
+        int qy{ boost::lexical_cast<int>(strResult.at(3)) }; // create qy
+        line_segment pLine{ (double)px, (double)py, (double)qx, (double)qy }; // form physical line from above coordinates
+        sf::VertexArray lLine{ sf::Lines, 2 }; // logical line
+        updateLine(lLine, pLine); // make logical line match physical
+        m_physicalMultiPairSet.push_back(pLine); // add physical line to current set
+        m_logicalMultiPairSet.push_back(lLine); // add logical line to current set
+      } catch (boost::bad_lexical_cast&) { // if any of the coordinates is not a number
+        continue; // ignore this line
+      }
     }
+    // set pair size and update it on screen
+    m_multiPairSetSize = m_physicalMultiPairSet.size();
+    updateSimulationStateInfo();
+    // perform important checks
+    if (m_multiPairTrashed) m_multiPairTrashed = false;
+    if (m_drawMultiPairIntersectionsNaive) m_drawMultiPairIntersectionsNaive = false;
+    if (m_drawMultiPairIntersectionsSweep) m_drawMultiPairIntersectionsSweep = false;
+    if (m_drawMultiPairSweepLine) m_drawMultiPairSweepLine = false;
+    if (m_currentlyCalculatingIntersectionsNaive) m_currentlyCalculatingIntersectionsNaive = false;
+    if (m_currentlyCalculatingIntersectionsSweep && !m_lastSweptSinglePair) m_currentlyCalculatingIntersectionsSweep = false;
     std::cout << "line segments loaded successfully\n";
-  } else {
+  } else { // write to file
+    if (m_physicalSinglePairSet.empty()) { // line segment set is empty
+      std::cout << "no line segments in set" << '\n';
+      return;
+    }
     std::ofstream fileToWrite{ fileName };
-    if (!fileToWrite) {
+    if (!fileToWrite) { // unable to write to file
       std::cout << "could not write to file\n";
       return;
     }
-    for (line_segment lineSeg : m_physicalMultiPairSet) {
+    for (line_segment lineSeg : m_physicalMultiPairSet) { // write every line in the file in a 'px py qx qy' format
       fileToWrite
         << lineSeg.p.x << ' '
         << lineSeg.p.y << ' '

@@ -66,4 +66,33 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="saves\multiple-pair-line-segment-set-1.dat">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="saves\multiple-pair-line-segment-set-2.dat">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="saves\multiple-pair-line-segment-set-3.dat">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="saves\multiple-pair-line-segment-set-4.dat">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="saves\multiple-pair-line-segment-set-5.dat">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="saves\multiple-pair-line-segment-set-6.dat">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="saves\multiple-pair-line-segment-set-7.dat">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="saves\multiple-pair-line-segment-set-8.dat">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="saves\multiple-pair-line-segment-set-9.dat">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>
