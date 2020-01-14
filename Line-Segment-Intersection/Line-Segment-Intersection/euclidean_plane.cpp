@@ -13,6 +13,8 @@
 #include <boost/algorithm/string/find.hpp>
 // SFML : Simple and Fast Multimedia Library
 #include <SFML/Graphics.hpp>
+#include <SFML/System/Clock.hpp>
+#include <SFML/System/Time.hpp>
 // Custom Headers
 #include "global.h"
 #include "point.h"
@@ -46,12 +48,16 @@ euclidean_plane::euclidean_plane()
   , m_naiveIntersectionPointText{}, m_sweepIntersectionPointText{}, m_simulationModeText{}
   , m_calculationModeText{}, m_updateModeText{}, m_multiPairSetSizeText{}
   , m_naiveIntersectionsHiddenText{}, m_sweepIntersectionsHiddenText{}
+  , m_naiveIntersectionsFoundText{}, m_sweepIntersectionsFoundText{}
+  , m_naiveTimeText{}, m_sweepTimeText{}, m_timeRecordingModeText{}
   , m_statisticsUpdateTime{}, m_statisticsNumFrames{ 0 }
+  , m_naiveClock{}, m_sweepClock{}, m_naiveTime{}, m_sweepTime{}
   , m_genNewSetOfLines{ false }, m_reset{ false }, m_exit{ false }
   , m_calcIntersectionsNaive{ false }, m_calcIntersectionsSweep{ false }
   , m_toggleSimulationMode{ false }, m_toggleHide{ false }, m_eraseCurrentSet{ false }
   , m_toggleCalculationMode{ false }, m_toggleUpdateMode{ false }, m_toggleAdvancedInfo{ false }
   , m_toggleNaiveIntersections{ false }, m_toggleSweepIntersections{ false }
+  , m_toggleTimeRecording{ false }
   , m_toggleReadWriteMode{ false }, m_executeReadWriteOperation{ false }
   , m_runTestCode{ false }
   , m_drawSinglePairIntersectionNaive{ false }, m_drawSinglePairIntersectionSweep{ false }
@@ -62,7 +68,8 @@ euclidean_plane::euclidean_plane()
   , m_singlePairMode{ true }, m_singlePairTrashed{ true }, m_multiPairTrashed{ true }
   , m_fancyCalculationMode{ true }, m_lastSweptSinglePair{ true }, m_useUpdateLimiter{ false }
   , m_currentlyCalculatingIntersectionsNaive{ false }, m_currentlyCalculatingIntersectionsSweep{ false }
-  , m_currentlyInReadMode{ true }
+  , m_currentlyInReadMode{ true }, m_calcTime{ true }
+  , m_drawNaiveTime{ false }, m_drawSweepTime{ false }
   , m_multiPairSetSize{ 25 }, m_naiveIterI{ 0 }, m_naiveIterJ{ 0 }, m_distribution{ distMin, distMax }
   , m_saveFileName{ "saves/multiple-pair-line-segment-set-" }, m_saveFileNumber{}, m_saveFileExtension{ ".dat" }
 {
@@ -90,6 +97,11 @@ euclidean_plane::euclidean_plane()
 
   m_logicalIntersectionPointNaive.setRadius(intersectionPointsRadius);
   m_logicalIntersectionPointNaive.setFillColor(sf::Color::Green);
+  m_logicalIntersectionPointNaive.setPointCount(10);
+
+  m_logicalIntersectionPointSweep.setRadius(intersectionPointsRadius);
+  m_logicalIntersectionPointSweep.setFillColor(sf::Color::Green);
+  m_logicalIntersectionPointSweep.setPointCount(10);
 
   m_font.loadFromFile("fonts/Sansation.ttf");
 
@@ -112,6 +124,11 @@ euclidean_plane::euclidean_plane()
   m_multiPairSetSizeText.setFont(m_font);
   m_naiveIntersectionsHiddenText.setFont(m_font);
   m_sweepIntersectionsHiddenText.setFont(m_font);
+  m_naiveIntersectionsFoundText.setFont(m_font);
+  m_sweepIntersectionsFoundText.setFont(m_font);
+  m_naiveTimeText.setFont(m_font);
+  m_sweepTimeText.setFont(m_font);
+  m_timeRecordingModeText.setFont(m_font);
 
   m_statisticsText.setPosition(5.f, 5.f);
   m_lineAText.setPosition(5.f, windowHeight - 70.f);
@@ -130,8 +147,13 @@ euclidean_plane::euclidean_plane()
   m_calculationModeText.setPosition(windowWidth - 270.f, windowHeight - 40.f);
   m_updateModeText.setPosition(windowWidth - 270.f, 5.f);
   m_multiPairSetSizeText.setPosition(xBias - 80.f, 5.f);
-  m_naiveIntersectionsHiddenText.setPosition(5.f, yBias + 10.f);
-  m_sweepIntersectionsHiddenText.setPosition(windowWidth - 270.f, yBias + 10.f);
+  m_naiveIntersectionsHiddenText.setPosition(5.f, yBias + 20.f);
+  m_sweepIntersectionsHiddenText.setPosition(windowWidth - 270.f, yBias + 20.f);
+  m_naiveIntersectionsFoundText.setPosition(5.f, yBias - 190.f);
+  m_sweepIntersectionsFoundText.setPosition(windowWidth - 270.f, yBias - 190.f);
+  m_naiveTimeText.setPosition(5.f, yBias - 100.f);
+  m_sweepTimeText.setPosition(windowWidth - 270.f, yBias - 100.f);
+  m_timeRecordingModeText.setPosition(windowWidth - 150.f, windowHeight - 40.f);
   
   m_statisticsText.setCharacterSize(fontSize);
   m_lineAText.setCharacterSize(fontSize);
@@ -152,6 +174,11 @@ euclidean_plane::euclidean_plane()
   m_multiPairSetSizeText.setCharacterSize(fontSize);
   m_naiveIntersectionsHiddenText.setCharacterSize(fontSize);
   m_sweepIntersectionsHiddenText.setCharacterSize(fontSize);
+  m_naiveIntersectionsFoundText.setCharacterSize(fontSize);
+  m_sweepIntersectionsFoundText.setCharacterSize(fontSize);
+  m_naiveTimeText.setCharacterSize(fontSize);
+  m_sweepTimeText.setCharacterSize(fontSize);
+  m_timeRecordingModeText.setCharacterSize(fontSize);
 
   m_lineApText.setFillColor(sf::Color::Red);
   m_lineAqText.setFillColor(sf::Color::Yellow);
@@ -161,6 +188,10 @@ euclidean_plane::euclidean_plane()
   m_sweepIntersectionPointText.setFillColor(sf::Color::Magenta);
   m_naiveIntersectionsHiddenText.setFillColor(sf::Color::Green);
   m_sweepIntersectionsHiddenText.setFillColor(sf::Color::Magenta);
+  m_naiveIntersectionsFoundText.setFillColor(sf::Color::Green);
+  m_sweepIntersectionsFoundText.setFillColor(sf::Color::Magenta);
+  m_naiveTimeText.setFillColor(sf::Color::Green);
+  m_sweepTimeText.setFillColor(sf::Color::Magenta);
 
   m_naiveIntersectionsHiddenText.setString("Naive Algorithm\nIntersections: Hidden");
   m_sweepIntersectionsHiddenText.setString("Sweep Line Algorithm\nIntersections: Hidden");
@@ -263,6 +294,26 @@ void euclidean_plane::update() {
     }
     m_toggleHide = false;
   }
+  // toggle read/write mode
+  if (m_toggleReadWriteMode) {
+    if (m_currentlyInReadMode) m_currentlyInReadMode = false;
+    else m_currentlyInReadMode = true;
+    m_toggleReadWriteMode = false;
+    if (m_currentlyInReadMode) std::cout << "read mode\n";
+    else std::cout << "write mode\n";
+  }
+  // toggle time recording on/off
+  if (m_toggleTimeRecording) {
+    if (m_calcTime) m_calcTime = false;
+    else m_calcTime = true;
+    updateSimulationStateInfo();
+    m_toggleTimeRecording = false;
+  }
+  // read write save files
+  if (m_executeReadWriteOperation) {
+    readWriteMultiPairSetToFile();
+    m_executeReadWriteOperation = false;
+  }
   // Erase Current Set
   if (m_eraseCurrentSet) {
     // trash the right set
@@ -305,6 +356,8 @@ void euclidean_plane::update() {
       if (m_drawMultiPairSweepLine) m_drawMultiPairSweepLine = false;
       if (m_currentlyCalculatingIntersectionsNaive) m_currentlyCalculatingIntersectionsNaive = false;
       if (m_currentlyCalculatingIntersectionsSweep && !m_lastSweptSinglePair) m_currentlyCalculatingIntersectionsSweep = false;
+      if (m_drawNaiveTime) m_drawNaiveTime = false;
+      if (m_drawSweepTime) m_drawSweepTime = false;
     }
     m_genNewSetOfLines = false;
   }
@@ -328,15 +381,26 @@ void euclidean_plane::update() {
           m_naiveIterJ = 0;
           m_drawMultiPairIntersectionsNaive = true;
           m_currentlyCalculatingIntersectionsNaive = true;
+          if (m_calcTime) m_naiveTime = sf::Time::Zero;
+          else m_drawNaiveTime = false;
         } else { // fast calculation mode
+          if (m_calcTime) { // calculate time
+            m_naiveTime = sf::Time::Zero;
+            m_naiveClock.restart();
+          } else { // value in m_naiveTime no longer corresponds to current naive intersection set
+            m_drawNaiveTime = false;
+          }
+          std::vector<bool> pLineDone(m_multiPairSetSize, false);
           for (int i = 0; i < m_multiPairSetSize; i++) {
             for (int j = 0; j < m_multiPairSetSize; j++) {
               if (i == j) continue;
+              else if (pLineDone.at(j)) continue;
               point pIntPoint;
               if (m_physicalMultiPairSet[i].intersects(m_physicalMultiPairSet[j], pIntPoint)) {
                 if (!containsPoint(m_physicalMultiPairIntersectionPointsNaive, pIntPoint)) {
                   m_physicalMultiPairIntersectionPointsNaive.push_back(pIntPoint);
                   sf::CircleShape lIntPoint;
+                  lIntPoint.setPointCount(10);
                   lIntPoint.setRadius(intersectionPointsRadius);
                   lIntPoint.setFillColor(sf::Color::Green);
                   updatePoint(lIntPoint, pIntPoint);
@@ -345,7 +409,16 @@ void euclidean_plane::update() {
                 }
               }
             }
+            pLineDone.at(i) = true;
           }
+          if (m_calcTime) { // calculate time
+            m_naiveTime = m_naiveClock.getElapsedTime(); // get time since the start of the naive algorithm
+            sf::Int64 timeMicro{ m_naiveTime.asMicroseconds() }; // get time as micro seconds
+            float timeSec{ m_naiveTime.asSeconds() }; // get time as seconds
+            m_naiveTimeText.setString("Naive Algorithm\nTime:\n" + toString(timeMicro) + " ms or\n" + toString(timeSec) + " s");
+            m_drawNaiveTime = true; // draw said time on screen
+          }
+          m_naiveIntersectionsFoundText.setString("Naive Algorithm\nIntersections Found:\n" + toString(m_physicalMultiPairIntersectionPointsNaive.size()));
         }
       }
     }
@@ -353,12 +426,14 @@ void euclidean_plane::update() {
   }
   // calculate intersections frame by frame in multi pair simulation (naive - fancy)
   if (m_currentlyCalculatingIntersectionsNaive) {
+    if (m_calcTime) m_naiveClock.restart(); // restart the clock to get current "loop's" time
     if (m_naiveIterI != m_naiveIterJ) {
       point pIntPoint;
       if (m_physicalMultiPairSet.at(m_naiveIterI).intersects(m_physicalMultiPairSet.at(m_naiveIterJ), pIntPoint)) {
         if (!containsPoint(m_physicalMultiPairIntersectionPointsNaive, pIntPoint)) {
           m_physicalMultiPairIntersectionPointsNaive.push_back(pIntPoint);
           sf::CircleShape lIntPoint;
+          lIntPoint.setPointCount(10);
           lIntPoint.setRadius(intersectionPointsRadius);
           lIntPoint.setFillColor(sf::Color::Green);
           updatePoint(lIntPoint, pIntPoint);
@@ -371,7 +446,17 @@ void euclidean_plane::update() {
       m_naiveIterJ = 0;
       m_naiveIterI++;
     }
-    if (m_naiveIterI == m_multiPairSetSize) m_currentlyCalculatingIntersectionsNaive = false;
+    if (m_calcTime) m_naiveTime += m_naiveClock.getElapsedTime();
+    m_naiveIntersectionsFoundText.setString("Naive Algorithm\nIntersections Found:\n" + toString(m_physicalMultiPairIntersectionPointsNaive.size())); // number of intersections found
+    if (m_naiveIterI == m_multiPairSetSize) { // calculation is over
+      if (m_calcTime) {
+        sf::Int64 timeMicro{ m_naiveTime.asMicroseconds() }; // get time as micro seconds
+        float timeSec{ m_naiveTime.asSeconds() }; // get time as seconds
+        m_naiveTimeText.setString("Naive Algorithm\nTime:\n" + toString(timeMicro) + " ms or\n" + toString(timeSec) + " s");
+        m_drawNaiveTime = true; // draw said time on screen
+      }
+      m_currentlyCalculatingIntersectionsNaive = false;
+    }
   }
   // calculate intersections (sweep line algorithm)
   if (m_calcIntersectionsSweep) {
@@ -416,11 +501,19 @@ void euclidean_plane::update() {
         //system("CLS"); // TEMP TEST TEMP TEST TEMP TEST
         m_drawMultiPairIntersectionsSweep = false;
         m_drawSinglePairSweepLine = false;
-        if (m_fancyCalculationMode) {
+        if (m_fancyCalculationMode) { // fancy calculation mode
           m_drawMultiPairIntersectionsSweep = true;
           m_drawMultiPairSweepLine = true;
           m_currentlyCalculatingIntersectionsSweep = true;
-        } else {
+          if (m_calcTime) m_sweepTime = sf::Time::Zero;
+          else m_drawSweepTime = false;
+        } else { // fast calculation mode
+          if (m_calcTime) { // calculate time
+            m_sweepTime = sf::Time::Zero;
+            m_sweepClock.restart();
+          } else { // value in m_naiveTime no longer corresponds to current naive intersection set
+            m_drawSweepTime = false;
+          }
           while (!m_physicalSweep.Q.empty()) {
             m_physicalSweep.advance(m_physicalSweep.Q.nextEventPointPosition());
             point pIntPoint{};
@@ -428,6 +521,7 @@ void euclidean_plane::update() {
               if (!containsPoint(m_physicalMultiPairIntersectionPointsSweep, pIntPoint)) {
                 m_physicalMultiPairIntersectionPointsSweep.push_back(pIntPoint); // get next ep, if it is an intersection point add it, if not do nothing
                 sf::CircleShape lIntPoint;
+                lIntPoint.setPointCount(10);
                 lIntPoint.setRadius(intersectionPointsRadius);
                 lIntPoint.setFillColor(sf::Color::Magenta);
                 updatePoint(lIntPoint, pIntPoint);
@@ -436,6 +530,14 @@ void euclidean_plane::update() {
               }
             }
           }
+          if (m_calcTime) { // calculate time
+            m_sweepTime = m_sweepClock.getElapsedTime(); // get time since the start of the sweep
+            sf::Int64 timeMicro{ m_sweepTime.asMicroseconds() }; // get time as micro seconds
+            float timeSec{ m_sweepTime.asSeconds() }; // get time as seconds
+            m_sweepTimeText.setString("Sweep Line Algorithm\nTime:\n" + toString(timeMicro) + " ms or\n" + toString(timeSec) + " s");
+            m_drawSweepTime = true; // draw said time on screen
+          }
+          m_sweepIntersectionsFoundText.setString("Sweep Line Algorithm\nIntersections Found:\n" + toString(m_physicalMultiPairIntersectionPointsSweep.size()));
         }
       }
     }
@@ -443,6 +545,7 @@ void euclidean_plane::update() {
   }
   // sweep line frame by frame (fancy)
   if (m_currentlyCalculatingIntersectionsSweep) {
+    if (m_calcTime) m_sweepClock.restart(); // restart the clock to get current "loop's" time
     if (!m_physicalSweep.reachedEnd()) {
       if (!m_physicalSweep.Q.empty()) {
         if (abs(m_physicalSweep.position - m_physicalSweep.Q.nextEventPointPosition()) <= m_physicalSweep.scope) {
@@ -453,6 +556,7 @@ void euclidean_plane::update() {
             if (!containsPoint(m_physicalMultiPairIntersectionPointsSweep, pIntPoint)) {
               m_physicalMultiPairIntersectionPointsSweep.push_back(pIntPoint); // get next ep, if it is an intersection point add it, if not do nothing
               sf::CircleShape lIntPoint;
+              lIntPoint.setPointCount(10);
               lIntPoint.setRadius(intersectionPointsRadius);
               lIntPoint.setFillColor(sf::Color::Magenta);
               updatePoint(lIntPoint, pIntPoint);
@@ -468,24 +572,19 @@ void euclidean_plane::update() {
         m_physicalSweep.advance();
         updateSweep(m_logicalSweep, m_physicalSweep);
       }
-    } else {
+      if(m_calcTime) m_sweepTime += m_sweepClock.getElapsedTime(); // get time since the start of the sweep
+      m_sweepIntersectionsFoundText.setString("Sweep Line Algorithm\nIntersections Found:\n" + toString(m_physicalMultiPairIntersectionPointsSweep.size())); // number of intersections found
+    } else { // calculation is over
+      if (m_calcTime) { // calculate time
+        sf::Int64 timeMicro{ m_sweepTime.asMicroseconds() }; // get time as micro seconds
+        float timeSec{ m_sweepTime.asSeconds() }; // get time as seconds
+        m_sweepTimeText.setString("Sweep Line Algorithm\nTime:\n" + toString(timeMicro) + " ms or\n" + toString(timeSec) + " s");
+        m_drawSweepTime = true; // draw said time on screen
+      }
       m_currentlyCalculatingIntersectionsSweep = false;
       if (m_drawSinglePairSweepLine) m_drawSinglePairSweepLine = false;
       if (m_drawMultiPairSweepLine) m_drawMultiPairSweepLine = false;
     }
-  }
-  // toggle read/write mode
-  if (m_toggleReadWriteMode) {
-    if (m_currentlyInReadMode) m_currentlyInReadMode = false;
-    else m_currentlyInReadMode = true;
-    m_toggleReadWriteMode = false;
-    if (m_currentlyInReadMode) std::cout << "read mode\n";
-    else std::cout << "write mode\n";
-  }
-  // read write save files
-  if (m_executeReadWriteOperation) {
-    readWriteMultiPairSetToFile();
-    m_executeReadWriteOperation = false;
   }
   /* # ### ####################################################################################################################### ### # *|
   |* # ### #### Test Zone Start ################################################################################################## ### # *|
@@ -498,7 +597,7 @@ void euclidean_plane::update() {
      *  (2): status structure feature test
      *  (3): sweep line feature test (setup)
      */
-#define TEST_OPTION 3
+#define TEST_OPTION 5
     /* _____________________________|___________________________________________________________________________________________________ *|
     |* # ### Write Code Below ### # | |~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|  *|
     |* _____________________________|___________________________________________________________________________________________________ */
@@ -657,7 +756,35 @@ void euclidean_plane::update() {
       lineSeg.print();
     }
 #elif TEST_OPTION == 5 // OTHER
-    std::cout << yValuePrecision;
+    std::cout << "Naive Points Repeated: " << '\n';
+    for (point p : m_physicalMultiPairIntersectionPointsNaive) {
+      int counter{ 0 };
+      for (point q : m_physicalMultiPairIntersectionPointsNaive) {
+        if (p.eq(q)) counter++;
+      }
+      if (counter > 1) {
+        std::cout << "_____________\n";
+        p.print();
+        std::cout << "_____________\n";
+      }
+    }
+    std::cout << "Sweep Points Repeated: " << '\n';
+    for (point p : m_physicalMultiPairIntersectionPointsSweep) {
+      int counter{ 0 };
+      for (point q : m_physicalMultiPairIntersectionPointsSweep) {
+        if (p.eq(q)) counter++;
+      }
+      if (counter > 1) {
+        std::cout << "_____________\n";
+        p.print();
+        std::cout << "_____________\n";
+      }
+    }
+    std::cout << "________________________________ " << m_physicalMultiPairIntersectionPointsNaive.size() << '\n';
+    for (point p : m_physicalMultiPairIntersectionPointsNaive) p.print();
+    std::cout << "________________________________ " << m_physicalMultiPairIntersectionPointsSweep.size() << '\n';
+    for (point p : m_physicalMultiPairIntersectionPointsSweep) p.print();
+    std::cout << m_logicalIntersectionPointNaive.getPointCount() << '\n';
 #endif
     /* _____________________________|___________________________________________________________________________________________________ *|
     |* # ### Write Code Above ### # | |~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|  *|
@@ -674,9 +801,10 @@ void euclidean_plane::render() {
   m_window.clear();
   if (!m_hideAdvancedInfo) {
     m_window.draw(m_statisticsText);
+    m_window.draw(m_updateModeText);
     m_window.draw(m_simulationModeText);
     m_window.draw(m_calculationModeText);
-    m_window.draw(m_updateModeText);
+    m_window.draw(m_timeRecordingModeText);
     if(!m_singlePairMode) m_window.draw(m_multiPairSetSizeText);
   }
   if (!m_hideAxis) {
@@ -730,7 +858,10 @@ void euclidean_plane::render() {
             m_window.draw(intersectionPoint);
           }
         }
+        m_window.draw(m_naiveIntersectionsFoundText); // draw the number of intersections found (naive)
       }
+      // draw naive algorithm time
+      if (m_drawNaiveTime) m_window.draw(m_naiveTimeText);
       // draw all sweep line algorithm intersection points
       if (m_drawMultiPairIntersectionsSweep) {
         if (!m_hideSweepIntersections) {
@@ -738,7 +869,10 @@ void euclidean_plane::render() {
             m_window.draw(intersectionPoint);
           }
         }
+        m_window.draw(m_sweepIntersectionsFoundText); // draw the number of intersections found (sweep)
       }
+      // draw sweep line algorithm time
+      if (m_drawSweepTime) m_window.draw(m_sweepTimeText);
       // draw the sweep line
       if (m_drawMultiPairSweepLine) {
         m_window.draw(m_logicalSweep);
@@ -764,49 +898,54 @@ void euclidean_plane::handleUserInput(sf::Keyboard::Key key, bool isPressed) {
   if (key == sf::Keyboard::Z && isPressed) m_toggleNaiveIntersections = true;
   if (key == sf::Keyboard::X && isPressed) m_toggleSweepIntersections = true;
   if (key == sf::Keyboard::C && isPressed) m_calcIntersectionsNaive = true;
+  if (key == sf::Keyboard::T && isPressed) m_toggleTimeRecording = true;
   // check only when in Multi Pair mode
   if (!m_singlePairMode) {
     if (key == sf::Keyboard::Up && isPressed) updateMultiPairSetSize(true);
     if (key == sf::Keyboard::Down && isPressed) updateMultiPairSetSize(false);
   }
-  // multi pair set saves (1-9)
-  if (key == sf::Keyboard::Numpad1 && isPressed) {
+  // multi pair set saves (0-9)
+  if (key == sf::Keyboard::Num0 && isPressed) {
+    m_executeReadWriteOperation = true;
+    m_saveFileNumber = 0;
+  }
+  if (key == sf::Keyboard::Num1 && isPressed) {
     m_executeReadWriteOperation = true;
     m_saveFileNumber = 1;
   }
-  if (key == sf::Keyboard::Numpad2 && isPressed) {
+  if (key == sf::Keyboard::Num2 && isPressed) {
     m_executeReadWriteOperation = true;
     m_saveFileNumber = 2;
   }
-  if (key == sf::Keyboard::Numpad3 && isPressed) {
+  if (key == sf::Keyboard::Num3 && isPressed) {
     m_executeReadWriteOperation = true;
     m_saveFileNumber = 3;
   }
-  if (key == sf::Keyboard::Numpad4 && isPressed) {
+  if (key == sf::Keyboard::Num4 && isPressed) {
     m_executeReadWriteOperation = true;
     m_saveFileNumber = 4;
   }
-  if (key == sf::Keyboard::Numpad5 && isPressed) {
+  if (key == sf::Keyboard::Num5 && isPressed) {
     m_executeReadWriteOperation = true;
     m_saveFileNumber = 5;
   }
-  if (key == sf::Keyboard::Numpad6 && isPressed) {
+  if (key == sf::Keyboard::Num6 && isPressed) {
     m_executeReadWriteOperation = true;
     m_saveFileNumber = 6;
   }
-  if (key == sf::Keyboard::Numpad7 && isPressed) {
+  if (key == sf::Keyboard::Num7 && isPressed) {
     m_executeReadWriteOperation = true;
     m_saveFileNumber = 7;
   }
-  if (key == sf::Keyboard::Numpad8 && isPressed) {
+  if (key == sf::Keyboard::Num8 && isPressed) {
     m_executeReadWriteOperation = true;
     m_saveFileNumber = 8;
   }
-  if (key == sf::Keyboard::Numpad9 && isPressed) {
+  if (key == sf::Keyboard::Num9 && isPressed) {
     m_executeReadWriteOperation = true;
     m_saveFileNumber = 9;
   }
-  if (key == sf::Keyboard::T && isPressed) m_toggleReadWriteMode = true;
+  if (key == sf::Keyboard::G && isPressed) m_toggleReadWriteMode = true;
   // test code
   if (key == sf::Keyboard::Numpad0 && isPressed) m_runTestCode = true;
   return;
@@ -891,6 +1030,9 @@ void euclidean_plane::updateSimulationStateInfo() {
   } else {
     m_calculationModeText.setString(fastCalculationModeText);
   }
+  // Time Recording Mode On/Off
+  if (m_calcTime) m_timeRecordingModeText.setString("Time On");
+  else m_timeRecordingModeText.setString("Time Off");
   // Use/Disable update limit
   if (m_useUpdateLimiter) {
     m_updateModeText.setString(updateLimiterOnText);

@@ -26,6 +26,7 @@ constexpr int fontSize{ 25 };
 constexpr int intersectionPointsRadius{ 3 }; // the radius of the circles that appear on screen denoting intersection points between line segments
 constexpr int multiPairSetSizeThreshold{ 100 }; // the maximum lines drawn when in multi pair mode (MPM)
 constexpr double precision = 0.1; // the precision of the logical grid (the smallest possible distance between two points)
+constexpr double lineThickness = 0.001; // the logical thickness of a line segment (how far away from the absolute center of a line are points considered part of the line)
 constexpr double yValuePrecision = 0.0000001; // the precision of the y value below the sweep line (1e-07 : 0.0000001)
 // according to which calculations and comparisons between line segments in the status structure occur
 

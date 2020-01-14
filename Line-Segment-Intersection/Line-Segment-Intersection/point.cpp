@@ -6,6 +6,7 @@
 // Boost Library
 // SFML : Simple and Fast Multimedia Library
 // Custom Headers
+#include "global.h"
 #include "point.h"
 
 // # ### #################################################################################### ### #
@@ -34,7 +35,10 @@ void point::print() {
 }
 
 bool point::eq(const point& p) {
-	if (x == p.x && y == p.y) return true;
+	//if (x == p.x && y == p.y) return true;
+	double xDif{ abs(x - p.x) };
+	double yDif{ abs(y - p.y) };
+	if (xDif < lineThickness && yDif < lineThickness) return true; // floating point arithmetic requires sacrifices
 	return false;
 }
 

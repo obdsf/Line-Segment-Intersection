@@ -77,10 +77,21 @@ private:
   sf::Text m_multiPairSetSizeText;
   sf::Text m_naiveIntersectionsHiddenText;
   sf::Text m_sweepIntersectionsHiddenText;
+  sf::Text m_naiveIntersectionsFoundText;
+  sf::Text m_sweepIntersectionsFoundText;
+  sf::Text m_naiveTimeText;
+  sf::Text m_sweepTimeText;
+  sf::Text m_timeRecordingModeText;
 
   // Statistics
   sf::Time m_statisticsUpdateTime;
   std::size_t m_statisticsNumFrames;
+
+  // line segment intersection time recorders
+  sf::Clock m_naiveClock;
+  sf::Clock m_sweepClock;
+  sf::Time m_naiveTime;
+  sf::Time m_sweepTime;
 
   // Actions
   bool m_exit;
@@ -95,7 +106,7 @@ private:
   bool m_toggleAdvancedInfo;
   bool m_toggleNaiveIntersections;
   bool m_toggleSweepIntersections;
-
+  bool m_toggleTimeRecording;
   bool m_toggleReadWriteMode;
   bool m_executeReadWriteOperation;
 
@@ -130,6 +141,10 @@ private:
   bool m_currentlyCalculatingIntersectionsSweep;
 
   bool m_currentlyInReadMode;
+
+  bool m_calcTime;
+  bool m_drawNaiveTime;
+  bool m_drawSweepTime;
 
   // Iterators
   int m_multiPairSetSize;

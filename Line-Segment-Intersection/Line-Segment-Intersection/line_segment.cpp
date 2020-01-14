@@ -90,7 +90,7 @@ bool line_segment::collinear(const line_segment& l) {
 }
 
 bool line_segment::partially_contains(const point& k) {
-	if (abs(((double)k.y - (double)slope * (double)k.x - (double)yIntercept)) <= precision) return true;
+	if (abs(((double)k.y - (double)slope * (double)k.x - (double)yIntercept)) <= lineThickness) return true;
 	/* Without the cast there is a risk of arithmetic overflow (C26451)
 		* If calculated value is too big and overflows the remainders
 		* might be less than 0.5 and thus return true, falsely.
