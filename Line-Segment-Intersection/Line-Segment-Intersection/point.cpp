@@ -45,3 +45,10 @@ bool point::eq(const point& p) {
 void point::setLineSeg(line_segment& newLineSeg) {
 	lineSeg = &newLineSeg;
 }
+
+bool point::operator==(point p) {
+	double xDif{ abs(x - p.x) };
+	double yDif{ abs(y - p.y) };
+	if (xDif < lineThickness && yDif < lineThickness) return true; // floating point arithmetic requires sacrifices
+	return false;
+}

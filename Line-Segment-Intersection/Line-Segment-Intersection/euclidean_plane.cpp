@@ -33,14 +33,16 @@ euclidean_plane::euclidean_plane()
   , m_physicalLineA{}, m_physicalLineB{}
   , m_physicalSinglePairSet{ &m_physicalLineA, &m_physicalLineB }
   , m_physicalIntersectionPointNaive{}, m_physicalIntersectionPointSweep{}
+  , m_logicalIntersectionPointNaive{}, m_logicalIntersectionPointSweep{}
   , m_xAxis{ sf::Lines, 2 }, m_yAxis{ sf::Lines, 2 }
   , m_leftBoundary{ sf::Lines, 2 }, m_topBoundary{ sf::Lines, 2 }
   , m_rightBoundary{ sf::Lines, 2 }, m_botBoundary{ sf::Lines, 2 }
   , m_logicalLineA{ sf::Lines, 2 }, m_logicalLineB{ sf::Lines, 2 }
-  , m_logicalIntersectionPointNaive{}, m_logicalIntersectionPointSweep{}
   , m_physicalMultiPairSet{}, m_logicalMultiPairSet{}
   , m_physicalMultiPairIntersectionPointsNaive{}, m_physicalMultiPairIntersectionPointsSweep{}
   , m_logicalMultiPairIntersectionPointsNaive{}, m_logicalMultiPairIntersectionPointsSweep{}
+  , m_physicalNaivePointsNotInSweep{}, m_physicalSweepPointsNotInNaive{}
+  , m_logicalNaivePointsNotInSweep{}, m_logicalSweepPointsNotInNaive{}
   , m_physicalSweep{}, m_logicalSweep{ sf::Lines, 2 }
   , m_font{}, m_statisticsText{}
   , m_lineAText{}, m_lineApText{}, m_lineAqText{}, m_lineAslopeText{}
@@ -50,16 +52,16 @@ euclidean_plane::euclidean_plane()
   , m_naiveIntersectionsHiddenText{}, m_sweepIntersectionsHiddenText{}
   , m_naiveIntersectionsFoundText{}, m_sweepIntersectionsFoundText{}
   , m_naiveTimeText{}, m_sweepTimeText{}, m_timeRecordingModeText{}
+  , m_readWriteModeText{}, m_readWriteModeActionText{}, m_intersectionMismatchText{}
   , m_statisticsUpdateTime{}, m_statisticsNumFrames{ 0 }
   , m_naiveClock{}, m_sweepClock{}, m_naiveTime{}, m_sweepTime{}
   , m_genNewSetOfLines{ false }, m_reset{ false }, m_exit{ false }
   , m_calcIntersectionsNaive{ false }, m_calcIntersectionsSweep{ false }
   , m_toggleSimulationMode{ false }, m_toggleHide{ false }, m_eraseCurrentSet{ false }
   , m_toggleCalculationMode{ false }, m_toggleUpdateMode{ false }, m_toggleAdvancedInfo{ false }
-  , m_toggleNaiveIntersections{ false }, m_toggleSweepIntersections{ false }
-  , m_toggleTimeRecording{ false }
+  , m_toggleNaiveIntersections{ false }, m_toggleSweepIntersections{ false }, m_toggleTimeRecording{ false }
   , m_toggleReadWriteMode{ false }, m_executeReadWriteOperation{ false }
-  , m_runTestCode{ false }
+  , m_compareIntersections{ false }, m_runTestCode{ false }
   , m_drawSinglePairIntersectionNaive{ false }, m_drawSinglePairIntersectionSweep{ false }
   , m_drawMultiPairIntersectionsNaive{ false }, m_drawMultiPairIntersectionsSweep{ false }
   , m_hideAxis{ false }, m_hideBoundaries{ false }, m_hideAdvancedInfo{ false }
@@ -70,8 +72,11 @@ euclidean_plane::euclidean_plane()
   , m_currentlyCalculatingIntersectionsNaive{ false }, m_currentlyCalculatingIntersectionsSweep{ false }
   , m_currentlyInReadMode{ true }, m_calcTime{ true }
   , m_drawNaiveTime{ false }, m_drawSweepTime{ false }
+  , m_intersectionMismatch{ false }, m_drawIntersectionMismatch{ false }
+  , m_drawIntersectionMismatchText{ false }, m_drawReadWriteModeActionText{ false }
   , m_multiPairSetSize{ 25 }, m_naiveIterI{ 0 }, m_naiveIterJ{ 0 }, m_distribution{ distMin, distMax }
   , m_saveFileName{ "saves/multiple-pair-line-segment-set-" }, m_saveFileNumber{}, m_saveFileExtension{ ".dat" }
+  , genericClock{}
 {
   m_xAxis[0].position = sf::Vector2f(leftMargin, yBias);
   m_xAxis[1].position = sf::Vector2f(windowWidth - leftMargin, yBias);
@@ -129,6 +134,9 @@ euclidean_plane::euclidean_plane()
   m_naiveTimeText.setFont(m_font);
   m_sweepTimeText.setFont(m_font);
   m_timeRecordingModeText.setFont(m_font);
+  m_readWriteModeText.setFont(m_font);
+  m_readWriteModeActionText.setFont(m_font);
+  m_intersectionMismatchText.setFont(m_font);
 
   m_statisticsText.setPosition(5.f, 5.f);
   m_lineAText.setPosition(5.f, windowHeight - 70.f);
@@ -144,7 +152,7 @@ euclidean_plane::euclidean_plane()
   m_naiveIntersectionPointText.setPosition(5.f, yBias - 40.f);
   m_sweepIntersectionPointText.setPosition(windowWidth - 270.f, yBias - 40.f);
   m_simulationModeText.setPosition(windowWidth - 270.f, windowHeight - 70.f);
-  m_calculationModeText.setPosition(windowWidth - 270.f, windowHeight - 40.f);
+  m_calculationModeText.setPosition(windowWidth - 270.f, 35.f);
   m_updateModeText.setPosition(windowWidth - 270.f, 5.f);
   m_multiPairSetSizeText.setPosition(xBias - 80.f, 5.f);
   m_naiveIntersectionsHiddenText.setPosition(5.f, yBias + 20.f);
@@ -153,7 +161,10 @@ euclidean_plane::euclidean_plane()
   m_sweepIntersectionsFoundText.setPosition(windowWidth - 270.f, yBias - 190.f);
   m_naiveTimeText.setPosition(5.f, yBias - 100.f);
   m_sweepTimeText.setPosition(windowWidth - 270.f, yBias - 100.f);
-  m_timeRecordingModeText.setPosition(windowWidth - 150.f, windowHeight - 40.f);
+  m_timeRecordingModeText.setPosition(windowWidth - 158.f, 35.f);
+  m_readWriteModeText.setPosition(windowWidth - 270.f, windowHeight - 40.f);
+  m_readWriteModeActionText.setPosition(windowWidth - 100.f, windowHeight - 40.f);
+  m_intersectionMismatchText.setPosition(xBias - 150.f, windowHeight - 70.f);
   
   m_statisticsText.setCharacterSize(fontSize);
   m_lineAText.setCharacterSize(fontSize);
@@ -179,6 +190,9 @@ euclidean_plane::euclidean_plane()
   m_naiveTimeText.setCharacterSize(fontSize);
   m_sweepTimeText.setCharacterSize(fontSize);
   m_timeRecordingModeText.setCharacterSize(fontSize);
+  m_readWriteModeText.setCharacterSize(fontSize);
+  m_readWriteModeActionText.setCharacterSize(fontSize);
+  m_intersectionMismatchText.setCharacterSize(fontSize);
 
   m_lineApText.setFillColor(sf::Color::Red);
   m_lineAqText.setFillColor(sf::Color::Yellow);
@@ -299,8 +313,7 @@ void euclidean_plane::update() {
     if (m_currentlyInReadMode) m_currentlyInReadMode = false;
     else m_currentlyInReadMode = true;
     m_toggleReadWriteMode = false;
-    if (m_currentlyInReadMode) std::cout << "read mode\n";
-    else std::cout << "write mode\n";
+    updateSimulationStateInfo();
   }
   // toggle time recording on/off
   if (m_toggleTimeRecording) {
@@ -314,6 +327,10 @@ void euclidean_plane::update() {
     readWriteMultiPairSetToFile();
     m_executeReadWriteOperation = false;
   }
+  // read write action clock
+  if (m_drawReadWriteModeActionText) {
+    if (genericClock.getElapsedTime() > sf::seconds(3.f)) m_drawReadWriteModeActionText = false;
+  }
   // Erase Current Set
   if (m_eraseCurrentSet) {
     // trash the right set
@@ -324,6 +341,55 @@ void euclidean_plane::update() {
     m_currentlyCalculatingIntersectionsSweep = false;
     // reset erase bool
     m_eraseCurrentSet = false;
+  }
+  // calculate intersection match/mismatch
+  if (m_compareIntersections) {
+    if (m_intersectionMismatch) {
+      if (m_drawIntersectionMismatch) m_drawIntersectionMismatch = false;
+      else m_drawIntersectionMismatch = true;
+    } else {
+      if (!m_physicalMultiPairIntersectionPointsNaive.empty() && !m_physicalMultiPairIntersectionPointsSweep.empty()) {
+        m_physicalNaivePointsNotInSweep.clear();
+        m_logicalNaivePointsNotInSweep.clear();
+        for (point p : m_physicalMultiPairIntersectionPointsNaive) {
+          if (std::find(m_physicalMultiPairIntersectionPointsSweep.begin(), m_physicalMultiPairIntersectionPointsSweep.end(), p) == m_physicalMultiPairIntersectionPointsSweep.end()) {
+            m_physicalNaivePointsNotInSweep.push_back(p);
+            sf::CircleShape logicalPoint{};
+            logicalPoint.setRadius(intersectionPointsRadius);
+            logicalPoint.setFillColor(sf::Color::Cyan);
+            logicalPoint.setPointCount(10);
+            updatePoint(logicalPoint, p);
+            m_logicalNaivePointsNotInSweep.push_back(logicalPoint);
+          }
+        }
+        m_physicalSweepPointsNotInNaive.clear();
+        m_logicalSweepPointsNotInNaive.clear();
+        for (point p : m_physicalMultiPairIntersectionPointsSweep) {
+          if (std::find(m_physicalMultiPairIntersectionPointsNaive.begin(), m_physicalMultiPairIntersectionPointsNaive.end(), p) == m_physicalMultiPairIntersectionPointsNaive.end()) {
+            m_physicalSweepPointsNotInNaive.push_back(p);
+            sf::CircleShape logicalPoint{};
+            logicalPoint.setRadius(intersectionPointsRadius);
+            logicalPoint.setFillColor(sf::Color::Red);
+            logicalPoint.setPointCount(10);
+            updatePoint(logicalPoint, p);
+            m_logicalSweepPointsNotInNaive.push_back(logicalPoint);
+          }
+        }
+        unsigned int mismatchedIntersection{ m_physicalNaivePointsNotInSweep.size() + m_physicalSweepPointsNotInNaive.size() };
+        if (mismatchedIntersection == 0) {
+          m_intersectionMismatch = false; // not needed
+          m_drawIntersectionMismatch = false;
+          m_intersectionMismatchText.setFillColor(sf::Color::Blue);
+        } else {
+          m_intersectionMismatch = true;
+          m_drawIntersectionMismatch = true;
+          m_intersectionMismatchText.setFillColor(sf::Color::Red);
+        }
+        m_intersectionMismatchText.setString("Intersection Mismatches\nFound: " + toString(mismatchedIntersection));
+        m_drawIntersectionMismatchText = true;
+      }
+    }
+    m_compareIntersections = false;
   }
   // Generate New Set of Lines
   if (m_genNewSetOfLines) {
@@ -358,6 +424,9 @@ void euclidean_plane::update() {
       if (m_currentlyCalculatingIntersectionsSweep && !m_lastSweptSinglePair) m_currentlyCalculatingIntersectionsSweep = false;
       if (m_drawNaiveTime) m_drawNaiveTime = false;
       if (m_drawSweepTime) m_drawSweepTime = false;
+      if (m_intersectionMismatch) m_intersectionMismatch = false;
+      if (m_drawIntersectionMismatch) m_drawIntersectionMismatch = false;
+      if (m_drawIntersectionMismatchText) m_drawIntersectionMismatchText = false;
     }
     m_genNewSetOfLines = false;
   }
@@ -760,7 +829,7 @@ void euclidean_plane::update() {
     for (point p : m_physicalMultiPairIntersectionPointsNaive) {
       int counter{ 0 };
       for (point q : m_physicalMultiPairIntersectionPointsNaive) {
-        if (p.eq(q)) counter++;
+        if (p==q) counter++;
       }
       if (counter > 1) {
         std::cout << "_____________\n";
@@ -772,7 +841,7 @@ void euclidean_plane::update() {
     for (point p : m_physicalMultiPairIntersectionPointsSweep) {
       int counter{ 0 };
       for (point q : m_physicalMultiPairIntersectionPointsSweep) {
-        if (p.eq(q)) counter++;
+        if (p==q) counter++;
       }
       if (counter > 1) {
         std::cout << "_____________\n";
@@ -805,6 +874,8 @@ void euclidean_plane::render() {
     m_window.draw(m_simulationModeText);
     m_window.draw(m_calculationModeText);
     m_window.draw(m_timeRecordingModeText);
+    m_window.draw(m_readWriteModeText);
+    if (m_drawReadWriteModeActionText) m_window.draw(m_readWriteModeActionText);
     if(!m_singlePairMode) m_window.draw(m_multiPairSetSizeText);
   }
   if (!m_hideAxis) {
@@ -873,6 +944,17 @@ void euclidean_plane::render() {
       }
       // draw sweep line algorithm time
       if (m_drawSweepTime) m_window.draw(m_sweepTimeText);
+      // draw intersection mismatches
+      if (m_intersectionMismatch && m_drawIntersectionMismatch) {
+        for (sf::CircleShape intersectionPoint : m_logicalNaivePointsNotInSweep) {
+          m_window.draw(intersectionPoint);
+        }
+        for (sf::CircleShape intersectionPoint : m_logicalSweepPointsNotInNaive) {
+          m_window.draw(intersectionPoint);
+        }
+      }
+      // draw intersection mismatch text
+      if (m_drawIntersectionMismatchText) m_window.draw(m_intersectionMismatchText);
       // draw the sweep line
       if (m_drawMultiPairSweepLine) {
         m_window.draw(m_logicalSweep);
@@ -891,14 +973,16 @@ void euclidean_plane::handleUserInput(sf::Keyboard::Key key, bool isPressed) {
   if (key == sf::Keyboard::W && isPressed) m_toggleSimulationMode = true;
   if (key == sf::Keyboard::E && isPressed) m_eraseCurrentSet = true;
   if (key == sf::Keyboard::R && isPressed) m_reset = true;
+  if (key == sf::Keyboard::T && isPressed) m_toggleTimeRecording = true;
   if (key == sf::Keyboard::A && isPressed) m_toggleAdvancedInfo = true;
   if (key == sf::Keyboard::S && isPressed) m_calcIntersectionsSweep = true;
   if (key == sf::Keyboard::D && isPressed) m_toggleHide = true;
   if (key == sf::Keyboard::F && isPressed) m_toggleCalculationMode = true;
+  if (key == sf::Keyboard::G && isPressed) m_toggleReadWriteMode = true;
   if (key == sf::Keyboard::Z && isPressed) m_toggleNaiveIntersections = true;
   if (key == sf::Keyboard::X && isPressed) m_toggleSweepIntersections = true;
   if (key == sf::Keyboard::C && isPressed) m_calcIntersectionsNaive = true;
-  if (key == sf::Keyboard::T && isPressed) m_toggleTimeRecording = true;
+  if (key == sf::Keyboard::V && isPressed) m_compareIntersections = true;
   // check only when in Multi Pair mode
   if (!m_singlePairMode) {
     if (key == sf::Keyboard::Up && isPressed) updateMultiPairSetSize(true);
@@ -945,7 +1029,6 @@ void euclidean_plane::handleUserInput(sf::Keyboard::Key key, bool isPressed) {
     m_executeReadWriteOperation = true;
     m_saveFileNumber = 9;
   }
-  if (key == sf::Keyboard::G && isPressed) m_toggleReadWriteMode = true;
   // test code
   if (key == sf::Keyboard::Numpad0 && isPressed) m_runTestCode = true;
   return;
@@ -1039,6 +1122,9 @@ void euclidean_plane::updateSimulationStateInfo() {
   } else {
     m_updateModeText.setString(updateLimiterOffText);
   }
+  // read/write mode
+  if (m_currentlyInReadMode) m_readWriteModeText.setString(readModeText);
+  else m_readWriteModeText.setString(writeModeText);
   // Multi Pair Set Size
   m_multiPairSetSizeText.setString("Number of Line\nSegments: " + toString(m_multiPairSetSize));
 }
@@ -1061,6 +1147,9 @@ void euclidean_plane::updateMultiPairSetSize(bool increase) {
 
 void euclidean_plane::readWriteMultiPairSetToFile() {
   std::string fileName{ m_saveFileName + toString(m_saveFileNumber) + m_saveFileExtension }; // the name of the file to read/write from/to
+  m_readWriteModeActionText.setString("file " + toString(m_saveFileNumber));
+  m_drawReadWriteModeActionText = true;
+  genericClock.restart();
   if (m_currentlyInReadMode) { // read from file
     std::ifstream fileToRead{ fileName };
     if (!fileToRead) { // if file doesn't exist or permissions are not granted
@@ -1101,17 +1190,11 @@ void euclidean_plane::readWriteMultiPairSetToFile() {
     if (m_drawMultiPairSweepLine) m_drawMultiPairSweepLine = false;
     if (m_currentlyCalculatingIntersectionsNaive) m_currentlyCalculatingIntersectionsNaive = false;
     if (m_currentlyCalculatingIntersectionsSweep && !m_lastSweptSinglePair) m_currentlyCalculatingIntersectionsSweep = false;
-    std::cout << "line segments loaded successfully\n";
+    m_readWriteModeActionText.setFillColor(sf::Color::Blue);
   } else { // write to file
-    if (m_physicalSinglePairSet.empty()) { // line segment set is empty
-      std::cout << "no line segments in set" << '\n';
-      return;
-    }
+    if (m_physicalSinglePairSet.empty()) return; // line segment set is empty
     std::ofstream fileToWrite{ fileName };
-    if (!fileToWrite) { // unable to write to file
-      std::cout << "could not write to file\n";
-      return;
-    }
+    if (!fileToWrite) return; // unable to write to file
     for (line_segment lineSeg : m_physicalMultiPairSet) { // write every line in the file in a 'px py qx qy' format
       fileToWrite
         << lineSeg.p.x << ' '
@@ -1119,7 +1202,7 @@ void euclidean_plane::readWriteMultiPairSetToFile() {
         << lineSeg.q.x << ' '
         << lineSeg.q.y << std::endl;
     }
-    std::cout << "line segments saved successfully\n";
+    m_readWriteModeActionText.setFillColor(sf::Color::Red);
   }
   return;
 }

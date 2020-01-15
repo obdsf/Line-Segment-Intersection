@@ -46,10 +46,14 @@ private:
   std::vector<line_segment> m_physicalMultiPairSet;
   std::vector<point> m_physicalMultiPairIntersectionPointsNaive;
   std::vector<point> m_physicalMultiPairIntersectionPointsSweep;
+  std::vector<point> m_physicalNaivePointsNotInSweep;
+  std::vector<point> m_physicalSweepPointsNotInNaive;
 
   std::vector<sf::VertexArray> m_logicalMultiPairSet;
   std::vector<sf::CircleShape> m_logicalMultiPairIntersectionPointsNaive;
   std::vector<sf::CircleShape> m_logicalMultiPairIntersectionPointsSweep;
+  std::vector<sf::CircleShape> m_logicalNaivePointsNotInSweep;
+  std::vector<sf::CircleShape> m_logicalSweepPointsNotInNaive;
 
   // Sweep Line
   sweep_line m_physicalSweep;
@@ -82,6 +86,9 @@ private:
   sf::Text m_naiveTimeText;
   sf::Text m_sweepTimeText;
   sf::Text m_timeRecordingModeText;
+  sf::Text m_readWriteModeText;
+  sf::Text m_readWriteModeActionText;
+  sf::Text m_intersectionMismatchText;
 
   // Statistics
   sf::Time m_statisticsUpdateTime;
@@ -109,7 +116,7 @@ private:
   bool m_toggleTimeRecording;
   bool m_toggleReadWriteMode;
   bool m_executeReadWriteOperation;
-
+  bool m_compareIntersections;
   bool m_runTestCode;
 
   // States
@@ -145,6 +152,10 @@ private:
   bool m_calcTime;
   bool m_drawNaiveTime;
   bool m_drawSweepTime;
+  bool m_intersectionMismatch;
+  bool m_drawIntersectionMismatch;
+  bool m_drawIntersectionMismatchText;
+  bool m_drawReadWriteModeActionText;
 
   // Iterators
   int m_multiPairSetSize;
@@ -159,6 +170,7 @@ private:
   std::string m_saveFileName;
   int m_saveFileNumber;
   std::string m_saveFileExtension;
+  sf::Clock genericClock;
 
 // # ### Class Member Functions # ###
 public:

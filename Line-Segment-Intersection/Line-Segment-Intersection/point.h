@@ -21,11 +21,12 @@ public:
 	void print();
 	bool eq(const point& p);
 	void setLineSeg(line_segment& newLineSeg);
+	// Overloaded Operators
+	bool operator==(point p);
 	// Member Variables
 	double x;
 	double y;
 	line_segment* lineSeg;
-
 private:
 
 };
