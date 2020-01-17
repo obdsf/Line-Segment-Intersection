@@ -35,7 +35,7 @@ public:
 private:
 	double calcSlope();
 	double calcYIntercept();
-	void calcEndPointsAndBoundaries();
+	void calcPointsAndBoundaries();
 
 // Member Variables
 public:
@@ -43,6 +43,9 @@ public:
 	point q;
 	point upperEndPoint;
 	point lowerEndPoint;
+	point rightmostEndPoint;
+	point leftmostEndPoint;
+	point midPoint;
 	double slope;
 	double yIntercept;
 	double xMin;

@@ -19,7 +19,7 @@ line_segment::line_segment(const point& p, const point& q)
 	: p{ p }, q{ q }, slope{ calcSlope() }, yIntercept{ calcYIntercept() }
 	, name{ "ls" + std::to_string(uniqueID++) }
 {
-	calcEndPointsAndBoundaries();
+	calcPointsAndBoundaries();
 	this->p.setLineSeg(*this);
 	this->q.setLineSeg(*this);
 }
@@ -28,7 +28,7 @@ line_segment::line_segment(const double& px, const double& py, const double& qx,
 	: p{ px, py }, q{ qx, qy }, slope{ calcSlope() }, yIntercept{ calcYIntercept() }
 	, name{ "ls" + std::to_string(uniqueID++) }
 {
-	calcEndPointsAndBoundaries();
+	calcPointsAndBoundaries();
 	p.setLineSeg(*this);
 	q.setLineSeg(*this);
 }
@@ -43,7 +43,7 @@ void line_segment::update(const point& p, const point& q) {
 	this->q.setLineSeg(*this);
 	slope = calcSlope();
 	yIntercept = calcYIntercept();
-	calcEndPointsAndBoundaries();
+	calcPointsAndBoundaries();
 	return;
 }
 
@@ -54,7 +54,7 @@ void line_segment::update(const double& px, const double& py, const double& qx, 
 	q.setLineSeg(*this);
 	slope = calcSlope();
 	yIntercept = calcYIntercept();
-	calcEndPointsAndBoundaries();
+	calcPointsAndBoundaries();
 	return;
 }
 
@@ -189,10 +189,10 @@ double line_segment::calcYIntercept() {
 	return p.y - p.x * slope;
 }
 
-void line_segment::calcEndPointsAndBoundaries() {
-	// calculate end points
+void line_segment::calcPointsAndBoundaries() {
+	// upper/lower end points
 	if (slope == 0) {
-		if (p.x < q.x) {
+		if (p.x <= q.x) {
 			upperEndPoint = p;
 			lowerEndPoint = q;
 		} else {
@@ -200,7 +200,7 @@ void line_segment::calcEndPointsAndBoundaries() {
 			lowerEndPoint = p;
 		}
 	} else {
-		if (p.y > q.y) {
+		if (p.y >= q.y) {
 			upperEndPoint = p;
 			lowerEndPoint = q;
 		} else {
@@ -208,14 +208,37 @@ void line_segment::calcEndPointsAndBoundaries() {
 			lowerEndPoint = p;
 		}
 	}
+	// leftmost/rightmost end points
+	if (isinf(slope)) {
+		if (p.y >= q.y) {
+			leftmostEndPoint = p;
+			rightmostEndPoint = q;
+		} else {
+			leftmostEndPoint = q;
+			rightmostEndPoint = p;
+		}
+	} else {
+		if (p.x <= q.x) {
+			leftmostEndPoint = p;
+			rightmostEndPoint = q;
+		} else {
+			leftmostEndPoint = q;
+			rightmostEndPoint = p;
+		}
+	}
+	// middle point
+	midPoint.x = (p.x + q.x) / 2;
+	midPoint.y = (p.y + q.y) / 2;
 	// calculate boundaries
-	if (p.x > q.x) {
+	xMax = rightmostEndPoint.x;
+	xMin = leftmostEndPoint.x;
+	/*if (p.x > q.x) {
 		xMax = p.x;
 		xMin = q.x;
 	} else {
 		xMax = q.x;
 		xMin = p.x;
-	}
+	}*/
 	yMax = upperEndPoint.y;
 	yMin = lowerEndPoint.y;
 

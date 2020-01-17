@@ -12,14 +12,16 @@
 // # ### #################################################################################### ### #
 
 class event_point {
+// Constructors & Destructor
 public:
-	// Constructors & Destructor
 	event_point(point& p, line_segment& line);
 	event_point(point& p);
 	~event_point();
-	// Member Functions
+
+// Member Functions
 	void addLine(line_segment& line);
-	// Member Variables
+
+// Member Variables
 	point p;
 	std::vector<line_segment*> linesU;
 };

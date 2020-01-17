@@ -825,35 +825,26 @@ void euclidean_plane::update() {
       lineSeg.print();
     }
 #elif TEST_OPTION == 5 // OTHER
-    std::cout << "Naive Points Repeated: " << '\n';
-    for (point p : m_physicalMultiPairIntersectionPointsNaive) {
-      int counter{ 0 };
-      for (point q : m_physicalMultiPairIntersectionPointsNaive) {
-        if (p==q) counter++;
-      }
-      if (counter > 1) {
-        std::cout << "_____________\n";
-        p.print();
-        std::cout << "_____________\n";
-      }
-    }
-    std::cout << "Sweep Points Repeated: " << '\n';
-    for (point p : m_physicalMultiPairIntersectionPointsSweep) {
-      int counter{ 0 };
-      for (point q : m_physicalMultiPairIntersectionPointsSweep) {
-        if (p==q) counter++;
-      }
-      if (counter > 1) {
-        std::cout << "_____________\n";
-        p.print();
-        std::cout << "_____________\n";
-      }
-    }
-    std::cout << "________________________________ " << m_physicalMultiPairIntersectionPointsNaive.size() << '\n';
-    for (point p : m_physicalMultiPairIntersectionPointsNaive) p.print();
-    std::cout << "________________________________ " << m_physicalMultiPairIntersectionPointsSweep.size() << '\n';
-    for (point p : m_physicalMultiPairIntersectionPointsSweep) p.print();
-    std::cout << m_logicalIntersectionPointNaive.getPointCount() << '\n';
+    std::cout << "Line A\n";
+    std::cout << "upper end point: ";
+    m_physicalLineA.upperEndPoint.print();
+    std::cout << "rightmost end point: ";
+    m_physicalLineA.rightmostEndPoint.print();
+    std::cout << "lower end point: ";
+    m_physicalLineA.lowerEndPoint.print();
+    std::cout << "leftmost end point: ";
+    m_physicalLineA.leftmostEndPoint.print();
+    m_physicalLineA.midPoint.print();
+    std::cout << "Line B\n";
+    std::cout << "upper end point: ";
+    m_physicalLineB.upperEndPoint.print();
+    std::cout << "rightmost end point: ";
+    m_physicalLineB.rightmostEndPoint.print();
+    std::cout << "lower end point: ";
+    m_physicalLineB.lowerEndPoint.print();
+    std::cout << "leftmost end point: ";
+    m_physicalLineB.leftmostEndPoint.print();
+    m_physicalLineB.midPoint.print();
 #endif
     /* _____________________________|___________________________________________________________________________________________________ *|
     |* # ### Write Code Above ### # | |~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|  *|
