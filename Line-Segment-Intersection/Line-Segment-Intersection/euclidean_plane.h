@@ -13,6 +13,7 @@
 #include "point.h"
 #include "line_segment.h"
 #include "sweep_line.h"
+#include "minimum_bounding_rectangle.h"
 
 // # ### #################################################################################### ### #
 
@@ -118,7 +119,8 @@ private:
   bool m_executeReadWriteOperation;
   bool m_compareIntersections;
   bool m_runTestCode;
-
+  bool m_toggleRendererTestCode;
+  
   // States
   bool m_reset;
 
@@ -156,6 +158,8 @@ private:
   bool m_drawIntersectionMismatch;
   bool m_drawIntersectionMismatchText;
   bool m_drawReadWriteModeActionText;
+
+  bool m_runRendererTestCode;
 
   // Iterators
   int m_multiPairSetSize;
@@ -195,7 +199,7 @@ private:
   void updateSimulationStateInfo();
   void updateMultiPairSetSize(bool increase);
   void readWriteMultiPairSetToFile();
-
+  void drawLogicalMBR(minimum_bounding_rectangle& mbr);
   bool containsPoint(std::vector<point>& vec, point& p);
   double orientation(point a, point b, point c);
 };

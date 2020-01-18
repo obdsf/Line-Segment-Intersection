@@ -138,6 +138,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="minimum_bounding_rectangle.cpp" />
     <ClCompile Include="point.cpp" />
+    <ClCompile Include="r_tree.cpp" />
     <ClCompile Include="status_structure.cpp" />
     <ClCompile Include="sweep_line.cpp" />
   </ItemGroup>
@@ -149,6 +150,7 @@
     <ClInclude Include="line_segment.h" />
     <ClInclude Include="minimum_bounding_rectangle.h" />
     <ClInclude Include="point.h" />
+    <ClInclude Include="r_tree.h" />
     <ClInclude Include="status_structure.h" />
     <ClInclude Include="sweep_line.h" />
   </ItemGroup>

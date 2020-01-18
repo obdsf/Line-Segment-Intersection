@@ -29,6 +29,7 @@ constexpr double precision = 0.1; // (0.1) the precision of the logical grid (th
 constexpr double lineThickness = 0.001; // (0.001) the logical thickness of a line segment (how far away from the absolute center of a line are points considered part of the line)
 constexpr double yValuePrecision = 0.0000001; // (1e-07 : 0.0000001) the precision of the y value below the sweep line
 // according to which calculations and comparisons between line segments in the status structure occur
+constexpr unsigned int defaultRTreeNodeSize = 3; // the maximum number of items a node of an R-Tree can hold
 
 const sf::Time timePerUpdate = sf::seconds(1.f / 60.f); // sets the maximum updates per second when the update limiter is on
 const std::string singlePairModeText{ "Single Pair Mode (SPM)" };

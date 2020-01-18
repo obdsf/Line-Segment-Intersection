@@ -53,5 +53,6 @@ public:
 	double yMin;
 	double yMax;
 	std::string name;
+private:
 	static unsigned int uniqueID;
 };

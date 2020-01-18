@@ -17,7 +17,7 @@ unsigned int line_segment::uniqueID{ 0 };
 // Constructors & Destructor
 line_segment::line_segment(const point& p, const point& q)
 	: p{ p }, q{ q }, slope{ calcSlope() }, yIntercept{ calcYIntercept() }
-	, name{ "ls" + std::to_string(uniqueID++) }
+	, name{ "ls_" + std::to_string(uniqueID++) }
 {
 	calcPointsAndBoundaries();
 	this->p.setLineSeg(*this);

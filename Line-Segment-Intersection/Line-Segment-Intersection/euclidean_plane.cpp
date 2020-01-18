@@ -20,10 +20,10 @@
 #include "point.h"
 #include "line_segment.h"
 #include "euclidean_plane.h"
-
 #include "event_point.h"
 #include "event_queue.h"
 #include "status_structure.h"
+#include "minimum_bounding_rectangle.h"
 
 // # ### #################################################################################### ### #
 
@@ -61,7 +61,7 @@ euclidean_plane::euclidean_plane()
   , m_toggleCalculationMode{ false }, m_toggleUpdateMode{ false }, m_toggleAdvancedInfo{ false }
   , m_toggleNaiveIntersections{ false }, m_toggleSweepIntersections{ false }, m_toggleTimeRecording{ false }
   , m_toggleReadWriteMode{ false }, m_executeReadWriteOperation{ false }
-  , m_compareIntersections{ false }, m_runTestCode{ false }
+  , m_compareIntersections{ false }, m_runTestCode{ false }, m_toggleRendererTestCode{ false }
   , m_drawSinglePairIntersectionNaive{ false }, m_drawSinglePairIntersectionSweep{ false }
   , m_drawMultiPairIntersectionsNaive{ false }, m_drawMultiPairIntersectionsSweep{ false }
   , m_hideAxis{ false }, m_hideBoundaries{ false }, m_hideAdvancedInfo{ false }
@@ -73,7 +73,7 @@ euclidean_plane::euclidean_plane()
   , m_currentlyInReadMode{ true }, m_calcTime{ true }
   , m_drawNaiveTime{ false }, m_drawSweepTime{ false }
   , m_intersectionMismatch{ false }, m_drawIntersectionMismatch{ false }
-  , m_drawIntersectionMismatchText{ false }, m_drawReadWriteModeActionText{ false }
+  , m_drawIntersectionMismatchText{ false }, m_drawReadWriteModeActionText{ false }, m_runRendererTestCode{ false }
   , m_multiPairSetSize{ 25 }, m_naiveIterI{ 0 }, m_naiveIterJ{ 0 }, m_distribution{ distMin, distMax }
   , m_saveFileName{ "saves/multiple-pair-line-segment-set-" }, m_saveFileNumber{}, m_saveFileExtension{ ".dat" }
   , genericClock{}
@@ -825,26 +825,7 @@ void euclidean_plane::update() {
       lineSeg.print();
     }
 #elif TEST_OPTION == 5 // OTHER
-    std::cout << "Line A\n";
-    std::cout << "upper end point: ";
-    m_physicalLineA.upperEndPoint.print();
-    std::cout << "rightmost end point: ";
-    m_physicalLineA.rightmostEndPoint.print();
-    std::cout << "lower end point: ";
-    m_physicalLineA.lowerEndPoint.print();
-    std::cout << "leftmost end point: ";
-    m_physicalLineA.leftmostEndPoint.print();
-    m_physicalLineA.midPoint.print();
-    std::cout << "Line B\n";
-    std::cout << "upper end point: ";
-    m_physicalLineB.upperEndPoint.print();
-    std::cout << "rightmost end point: ";
-    m_physicalLineB.rightmostEndPoint.print();
-    std::cout << "lower end point: ";
-    m_physicalLineB.lowerEndPoint.print();
-    std::cout << "leftmost end point: ";
-    m_physicalLineB.leftmostEndPoint.print();
-    m_physicalLineB.midPoint.print();
+
 #endif
     /* _____________________________|___________________________________________________________________________________________________ *|
     |* # ### Write Code Above ### # | |~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|  *|
@@ -854,6 +835,11 @@ void euclidean_plane::update() {
   /* # ### ####################################################################################################################### ### # *|
   |* # ### #### Test Zone End #################################################################################################### ### # *|
   |* # ### ####################################################################################################################### ### # */
+  // run test code inside render function on/off
+  if (m_toggleRendererTestCode) {
+    m_runRendererTestCode ? m_runRendererTestCode = false : m_runRendererTestCode = true;
+    m_toggleRendererTestCode = false;
+  }
   return;
 }
 
@@ -952,6 +938,23 @@ void euclidean_plane::render() {
       }
     }
   }
+  /* # ### ####################################################################################################################### ### # *|
+  |* # ### #### Test Zone Start ################################################################################################## ### # *|
+  |* # ### ####################################################################################################################### ### # */
+  if (m_runRendererTestCode) {
+    /* _____________________________|___________________________________________________________________________________________________ *|
+    |* # ### Write Code Below ### # | |~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|  *|
+    |* _____________________________|___________________________________________________________________________________________________ */
+    minimum_bounding_rectangle mbr{ &m_physicalLineA };
+    mbr.add(&m_physicalLineB);
+    drawLogicalMBR(mbr);
+    /* _____________________________|___________________________________________________________________________________________________ *|
+    |* # ### Write Code Above ### # | |~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|  *|
+    |* _____________________________|___________________________________________________________________________________________________ */
+  }
+  /* # ### ####################################################################################################################### ### # *|
+  |* # ### #### Test Zone End #################################################################################################### ### # *|
+  |* # ### ####################################################################################################################### ### # */
   m_window.display();
   return;
 }
@@ -1022,6 +1025,7 @@ void euclidean_plane::handleUserInput(sf::Keyboard::Key key, bool isPressed) {
   }
   // test code
   if (key == sf::Keyboard::Numpad0 && isPressed) m_runTestCode = true;
+  if (key == sf::Keyboard::Numpad1 && isPressed) m_toggleRendererTestCode = true;
   return;
 }
 
@@ -1195,6 +1199,28 @@ void euclidean_plane::readWriteMultiPairSetToFile() {
     }
     m_readWriteModeActionText.setFillColor(sf::Color::Red);
   }
+  return;
+}
+
+void euclidean_plane::drawLogicalMBR(minimum_bounding_rectangle& mbr) {
+  // draw top line
+  line_segment pLine{ mbr.upperLeft, mbr.upperRight };
+  sf::VertexArray lLine{ sf::Lines, 2 };
+  updateLine(lLine, pLine);
+  m_window.draw(lLine);
+  // draw bottom line
+  pLine.update(mbr.lowerLeft, mbr.lowerRight);
+  updateLine(lLine, pLine);
+  m_window.draw(lLine);
+  // draw left line
+  pLine.update(mbr.upperLeft, mbr.lowerLeft);
+  updateLine(lLine, pLine);
+  m_window.draw(lLine);
+  // draw right line
+  pLine.update(mbr.upperRight, mbr.lowerRight);
+  updateLine(lLine, pLine);
+  m_window.draw(lLine);
+
   return;
 }
 
