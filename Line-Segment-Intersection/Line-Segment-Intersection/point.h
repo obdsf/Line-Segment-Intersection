@@ -21,6 +21,7 @@ public:
 	void print();
 	bool eq(const point& p);
 	void setLineSeg(line_segment& newLineSeg);
+	double distance(point& p);
 	// Overloaded Operators
 	bool operator==(point p);
 	// Member Variables

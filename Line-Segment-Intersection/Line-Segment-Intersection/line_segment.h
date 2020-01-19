@@ -36,7 +36,9 @@ private:
 	double calcSlope();
 	double calcYIntercept();
 	void calcPointsAndBoundaries();
-
+// Overloaded Operators
+public:
+	bool operator==(line_segment l);
 // Member Variables
 public:
 	point p;

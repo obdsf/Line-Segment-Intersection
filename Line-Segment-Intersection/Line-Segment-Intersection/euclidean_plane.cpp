@@ -6,6 +6,7 @@
 #include <fstream>
 #include <random>
 #include <vector>
+#include <algorithm>
 // Boost Library
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
@@ -942,12 +943,26 @@ void euclidean_plane::render() {
   |* # ### #### Test Zone Start ################################################################################################## ### # *|
   |* # ### ####################################################################################################################### ### # */
   if (m_runRendererTestCode) {
+    system("CLS"); // clears the terminal
+    /* # ### preprocessor directive - RENDERER_TEST_OPTION ### #
+     *  (0): elease Option, nothing happens
+     *  (1): event queue feature test
+     *  (2): status structure feature test
+     *  (3): sweep line feature test (setup)
+     */
+#define RENDERER_TEST_OPTION 0
     /* _____________________________|___________________________________________________________________________________________________ *|
     |* # ### Write Code Below ### # | |~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|  *|
     |* _____________________________|___________________________________________________________________________________________________ */
-    minimum_bounding_rectangle mbr{ &m_physicalLineA };
-    mbr.add(&m_physicalLineB);
+#if RENDERER_TEST_OPTION == 0
+    minimum_bounding_rectangle mbr{ m_physicalLineA };
+    mbr.add(m_physicalLineB);
+    mbr.remove(m_physicalLineA);
+    mbr.remove(m_physicalLineB);
     drawLogicalMBR(mbr);
+#elif RENDERER_TEST_OPTION == 1
+    
+#endif
     /* _____________________________|___________________________________________________________________________________________________ *|
     |* # ### Write Code Above ### # | |~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|  *|
     |* _____________________________|___________________________________________________________________________________________________ */

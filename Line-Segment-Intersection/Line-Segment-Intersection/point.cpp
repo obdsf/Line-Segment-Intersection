@@ -3,6 +3,7 @@
 
 // STL : Standard Template Library
 #include <iostream>
+#include <cmath>
 // Boost Library
 // SFML : Simple and Fast Multimedia Library
 // Custom Headers
@@ -44,6 +45,10 @@ bool point::eq(const point& p) {
 
 void point::setLineSeg(line_segment& newLineSeg) {
 	lineSeg = &newLineSeg;
+}
+
+double point::distance(point& p) {
+	return std::sqrt((x - p.x) * (x - p.x) + (y - p.y) * (y - p.y));
 }
 
 bool point::operator==(point p) {

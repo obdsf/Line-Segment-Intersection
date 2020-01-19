@@ -249,3 +249,8 @@ void line_segment::resetID() {
 	uniqueID = 0;
 	return;
 }
+
+bool line_segment::operator==(line_segment l) {
+	if (p == l.p && q == l.q || q == l.p && p == l.q) return true;
+	return false;
+}
