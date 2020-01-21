@@ -45,7 +45,7 @@ const point epbTopRight{ windowWidth - rightMargin, topMargin }; // top right po
 const point epbBotRight{ windowWidth - rightMargin, windowHeight - bottomMargin }; // bottom right point that defines the euclidean space on screen
 const point epbBotLeft{ leftMargin, windowHeight - bottomMargin }; // bottom left point that defines the euclidean space on screen
 
-__declspec(selectany) unsigned int debuggingUnionCounter{ 0 };
+__declspec(selectany) unsigned int debuggingCounter{ 0 };
 
 template <typename T>
 std::string toString(const T& value) {

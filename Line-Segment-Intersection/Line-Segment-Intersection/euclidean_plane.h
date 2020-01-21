@@ -6,6 +6,7 @@
 #include <sstream>
 #include <random>
 #include <vector>
+#include <array>
 // Boost Library
 // SFML : Simple and Fast Multimedia Library
 #include <SFML/Graphics.hpp>
@@ -13,6 +14,7 @@
 #include "point.h"
 #include "line_segment.h"
 #include "sweep_line.h"
+#include "r_tree.h"
 #include "minimum_bounding_rectangle.h"
 
 // # ### #################################################################################### ### #
@@ -59,6 +61,10 @@ private:
   // Sweep Line
   sweep_line m_physicalSweep;
   sf::VertexArray m_logicalSweep;
+
+  // R-Tree
+  r_tree m_physicalRTree;
+  std::vector<sf::VertexArray> m_logicalRTree;
 
   // Texts & Fonts
   sf::Font m_font;
@@ -176,6 +182,9 @@ private:
   std::string m_saveFileExtension;
   sf::Clock genericClock;
 
+  // Debugging
+  //minimum_bounding_rectangle mbr;
+
 // # ### Class Member Functions # ###
 public:
   euclidean_plane(); // Class Constructor
@@ -199,6 +208,7 @@ private:
   void updateSimulationStateInfo();
   void updateMultiPairSetSize(bool increase);
   void readWriteMultiPairSetToFile();
+  void updateLogicalRTree();
   void drawLogicalMBR(minimum_bounding_rectangle& mbr);
   bool containsPoint(std::vector<point>& vec, point& p);
   double orientation(point a, point b, point c);

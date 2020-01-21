@@ -7,6 +7,7 @@
 #include <random>
 #include <vector>
 #include <algorithm>
+#include <iterator>
 // Boost Library
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
@@ -45,6 +46,7 @@ euclidean_plane::euclidean_plane()
   , m_physicalNaivePointsNotInSweep{}, m_physicalSweepPointsNotInNaive{}
   , m_logicalNaivePointsNotInSweep{}, m_logicalSweepPointsNotInNaive{}
   , m_physicalSweep{}, m_logicalSweep{ sf::Lines, 2 }
+  , m_physicalRTree{}, m_logicalRTree{}
   , m_font{}, m_statisticsText{}
   , m_lineAText{}, m_lineApText{}, m_lineAqText{}, m_lineAslopeText{}
   , m_lineBText{}, m_lineBpText{}, m_lineBqText{}, m_lineBslopeText{}
@@ -78,6 +80,8 @@ euclidean_plane::euclidean_plane()
   , m_multiPairSetSize{ 25 }, m_naiveIterI{ 0 }, m_naiveIterJ{ 0 }, m_distribution{ distMin, distMax }
   , m_saveFileName{ "saves/multiple-pair-line-segment-set-" }, m_saveFileNumber{}, m_saveFileExtension{ ".dat" }
   , genericClock{}
+// # ### Debugging ### #
+  //, mbr{ m_physicalLineA }
 {
   m_xAxis[0].position = sf::Vector2f(leftMargin, yBias);
   m_xAxis[1].position = sf::Vector2f(windowWidth - leftMargin, yBias);
@@ -667,7 +671,7 @@ void euclidean_plane::update() {
      *  (2): status structure feature test
      *  (3): sweep line feature test (setup)
      */
-#define TEST_OPTION 5
+#define TEST_OPTION 6
     /* _____________________________|___________________________________________________________________________________________________ *|
     |* # ### Write Code Below ### # | |~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|  *|
     |* _____________________________|___________________________________________________________________________________________________ */
@@ -825,8 +829,41 @@ void euclidean_plane::update() {
     for (line_segment lineSeg : m_physicalMultiPairSet) {
       lineSeg.print();
     }
-#elif TEST_OPTION == 5 // OTHER
-
+#elif TEST_OPTION == 5 // VECTOR COPY & PASTE TEST (FOR R-TREE HANDLE OVERFLOW FUNCTION)
+    std::vector<int> A{ 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+    std::vector<int> B{};
+    auto iStart{ A.begin() + A.size() / 2 };
+    auto iEnd{ A.end() };
+    B.push_back(*iStart++);
+    std::copy(iStart--, A.end(), std::back_inserter(B));
+    A.erase(iStart, iEnd);
+    std::cout << "A: ";
+    for (int i : A) std::cout << i << ' ';
+    std::cout << "\nB: ";
+    for (int i : B) std::cout << i << ' ';
+#elif TEST_OPTION == 6 // OTHER
+    if (debuggingCounter == 0) {
+      m_physicalMultiPairSet[0].print();
+      m_physicalRTree.insert(m_physicalRTree.root(), m_physicalMultiPairSet[0]);
+      updateLogicalRTree();
+      m_physicalRTree.print();
+    } else if (debuggingCounter == 1) {
+      m_physicalMultiPairSet[1].print();
+      m_physicalRTree.insert(m_physicalRTree.root(), m_physicalMultiPairSet[1]);
+      updateLogicalRTree();
+      m_physicalRTree.print();
+    } else if (debuggingCounter == 2) {
+      m_physicalMultiPairSet[2].print();
+      m_physicalRTree.insert(m_physicalRTree.root(), m_physicalMultiPairSet[2]);
+      updateLogicalRTree();
+      m_physicalRTree.print();
+    } else if (debuggingCounter == 3) {
+    } else if (debuggingCounter == 4) {
+    } else if (debuggingCounter == 5) {
+    } else if (debuggingCounter == 6) {
+    } else if (debuggingCounter == 7) {
+    }
+    std::cout << "\ndebugging step: " << debuggingCounter++ << '\n';
 #endif
     /* _____________________________|___________________________________________________________________________________________________ *|
     |* # ### Write Code Above ### # | |~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|  *|
@@ -943,7 +980,7 @@ void euclidean_plane::render() {
   |* # ### #### Test Zone Start ################################################################################################## ### # *|
   |* # ### ####################################################################################################################### ### # */
   if (m_runRendererTestCode) {
-    system("CLS"); // clears the terminal
+    //system("CLS"); // clears the terminal
     /* # ### preprocessor directive - RENDERER_TEST_OPTION ### #
      *  (0): elease Option, nothing happens
      *  (1): event queue feature test
@@ -955,11 +992,9 @@ void euclidean_plane::render() {
     |* # ### Write Code Below ### # | |~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|  *|
     |* _____________________________|___________________________________________________________________________________________________ */
 #if RENDERER_TEST_OPTION == 0
-    minimum_bounding_rectangle mbr{ m_physicalLineA };
-    mbr.add(m_physicalLineB);
-    mbr.remove(m_physicalLineA);
-    mbr.remove(m_physicalLineB);
-    drawLogicalMBR(mbr);
+    for (sf::VertexArray lLine : m_logicalRTree) {
+      m_window.draw(lLine);
+    }
 #elif RENDERER_TEST_OPTION == 1
     
 #endif
@@ -1213,6 +1248,33 @@ void euclidean_plane::readWriteMultiPairSetToFile() {
         << lineSeg.q.y << std::endl;
     }
     m_readWriteModeActionText.setFillColor(sf::Color::Red);
+  }
+  return;
+}
+
+void euclidean_plane::updateLogicalRTree() {
+  m_logicalRTree.clear();
+  for (minimum_bounding_rectangle mbr : m_physicalRTree.tree) {
+    // upperLeft to upperRight line
+    sf::VertexArray logicalLine1{ sf::Lines, 2 };
+    logicalLine1[0].position = sf::Vector2f(mbr.upperLeft.x + xBias, yBias - mbr.upperLeft.y);
+    logicalLine1[1].position = sf::Vector2f(mbr.upperRight.x + xBias, yBias - mbr.upperRight.y);
+    m_logicalRTree.push_back(logicalLine1);
+    // upperRight to lowerRight line
+    sf::VertexArray logicalLine2{ sf::Lines, 2 };
+    logicalLine2[0].position = sf::Vector2f(mbr.upperRight.x + xBias, yBias - mbr.upperRight.y);
+    logicalLine2[1].position = sf::Vector2f(mbr.lowerRight.x + xBias, yBias - mbr.lowerRight.y);
+    m_logicalRTree.push_back(logicalLine2);
+    // lowerRight to lowerLeft line
+    sf::VertexArray logicalLine3{ sf::Lines, 2 };
+    logicalLine3[0].position = sf::Vector2f(mbr.lowerRight.x + xBias, yBias - mbr.lowerRight.y);
+    logicalLine3[1].position = sf::Vector2f(mbr.lowerLeft.x + xBias, yBias - mbr.lowerLeft.y);
+    m_logicalRTree.push_back(logicalLine3);
+    // lowerLeft to upperLeft line
+    sf::VertexArray logicalLine4{ sf::Lines, 2 };
+    logicalLine4[0].position = sf::Vector2f(mbr.lowerLeft.x + xBias, yBias - mbr.lowerLeft.y);
+    logicalLine4[1].position = sf::Vector2f(mbr.upperLeft.x + xBias, yBias - mbr.upperLeft.y);
+    m_logicalRTree.push_back(logicalLine4);
   }
   return;
 }
