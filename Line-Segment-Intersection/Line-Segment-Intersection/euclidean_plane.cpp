@@ -380,7 +380,7 @@ void euclidean_plane::update() {
             m_logicalSweepPointsNotInNaive.push_back(logicalPoint);
           }
         }
-        unsigned int mismatchedIntersection{ m_physicalNaivePointsNotInSweep.size() + m_physicalSweepPointsNotInNaive.size() };
+        unsigned int mismatchedIntersection{ (unsigned int)(m_physicalNaivePointsNotInSweep.size() + m_physicalSweepPointsNotInNaive.size()) };
         if (mismatchedIntersection == 0) {
           m_intersectionMismatch = false; // not needed
           m_drawIntersectionMismatch = false;
