@@ -24,7 +24,8 @@ minimum_bounding_rectangle::minimum_bounding_rectangle(line_segment& line, minim
   , isLeaf{ true }, isRoot{ false }, m_containerSize{ size }
   , nodeID{ uniqueID++ }
 {
-  containedSegments.push_back(&line);
+  std::cout << "LINE CONSTRUCTOR || NODE " << nodeID << '\n';
+  containedSegments.push_back(&line); std::cout << "containedSegments.push_back(&line);\n";
   if (m_parent == nullptr) isRoot = true;
 }
 
@@ -36,123 +37,71 @@ minimum_bounding_rectangle::minimum_bounding_rectangle(minimum_bounding_rectangl
   , isLeaf{ false }, isRoot{ false }, m_containerSize{ size }
   , nodeID{ uniqueID++ }
 {
-  containedRectangles.push_back(&rectangle);
+  std::cout << "RECTANGLE CONSTRUCTOR || NODE " << nodeID << '\n';
+  containedRectangles.push_back(&rectangle); std::cout << "containedRectangles.push_back(&rectangle);\n";
   if (m_parent == nullptr) isRoot = true;
 }
 
-minimum_bounding_rectangle::minimum_bounding_rectangle(const minimum_bounding_rectangle& mbr)
+minimum_bounding_rectangle::minimum_bounding_rectangle(const minimum_bounding_rectangle& mbr) 
   : upperLeft{ mbr.upperLeft }, upperRight{ mbr.upperRight }
   , lowerLeft{ mbr.lowerLeft }, lowerRight{ mbr.lowerRight }
-  , center{ mbr.center }, perimeter{ mbr.perimeter }
-  , containedRectangles{ mbr.containedRectangles }, containedSegments{ mbr.containedSegments }
-  , m_parent{ mbr.m_parent }
+  , center{ mbr.center }, perimeter{ calcPerimeter() }
+  , containedRectangles{ mbr.containedRectangles }, containedSegments{ mbr.containedSegments }, m_parent{ mbr.m_parent }
   , isLeaf{ mbr.isLeaf }, isRoot{ mbr.isRoot }, m_containerSize{ mbr.m_containerSize }
-  , nodeID{ uniqueID++ }
+  , nodeID{ mbr.nodeID }
 {
-  std::cout << "copy constructor called!\ncopying node " << mbr.nodeID << " to node " << nodeID << '\n'; // TEMP TEST
+  std::cout << isLeaf << " COPY CONSTRUCTOR || NODE " << nodeID << '\n';
 }
 
 minimum_bounding_rectangle::minimum_bounding_rectangle::~minimum_bounding_rectangle() {}
 
 // Member Functions
 bool minimum_bounding_rectangle::add(line_segment& line) {
+  std::cout << "MBR.ADD LINE\n";
   containedSegments.push_back(&line); // add new element to coresponding container
-  //if (line.yMax > upperLeft.y) { // expand upper boundary if needed
-  //  upperLeft.y = line.yMax;
-  //  upperRight.y = upperLeft.y;
-  //}
-  //if (line.yMin < lowerLeft.y) { // expand lower boundary if needed
-  //  lowerLeft.y = line.yMin;
-  //  lowerRight.y = lowerLeft.y;
-  //}
-  //if (line.xMin < upperLeft.x) { // expand left boundary if needed
-  //  upperLeft.x = line.xMin;
-  //  lowerLeft.x = upperLeft.x;
-  //}
-  //if (line.xMax > upperRight.x) { // expand right boundary if needed
-  //  upperRight.x = line.xMax;
-  //  lowerRight.x = upperRight.x;
-  //}
-  adjustSubTreeBoundaries(); // adjust the subtree's boundary points
-  perimeter = calcPerimeter(); // calculate new perimeter
-  if (size() >= maxSize()) return 0; // false, new element added but overflow occured
+  std::cout << "containedSegments.push_back(&line);\n";
+  refreshBoundaries(); // adjust the subtree's boundary points
+  //perimeter = calcPerimeter(); // calculate new perimeter refresh boundaries already does that
+  if (size() > maxSize()) return 0; // false, new element added but overflow occured
   else return 1; // true, new element added without overflow
 }
 
 bool minimum_bounding_rectangle::add(minimum_bounding_rectangle& rectangle) {
+  std::cout << "MBR.ADD RECTANGLE\n";
   containedRectangles.push_back(&rectangle); // add new element to coresponding container
-  //if (rectangle.upperLeft.y > upperLeft.y) { // expand upper boundary if needed
-  //  upperLeft.y = rectangle.upperLeft.y;
-  //  upperRight.y = upperLeft.y;
-  //}
-  //if (rectangle.lowerLeft.y < lowerLeft.y) { // expand lower boundary if needed
-  //  lowerLeft.y = rectangle.lowerLeft.y;
-  //  lowerRight.y = lowerLeft.y;
-  //}
-  //if (rectangle.upperLeft.x < upperLeft.x) { // expand left boundary if needed
-  //  upperLeft.x = rectangle.upperLeft.x;
-  //  lowerLeft.x = upperLeft.x;
-  //}
-  //if (rectangle.upperRight.x > upperRight.x) { // expand right boundary if needed
-  //  upperRight.x = rectangle.upperRight.x;
-  //  lowerRight.x = upperRight.x;
-  //}
-  adjustSubTreeBoundaries(); // adjust the subtree's boundary points
-  perimeter = calcPerimeter(); // calculate new perimeter
+  std::cout << "containedRectangles.push_back(&rectangle);\n";
   rectangle.m_parent = this; // set rectangles parent to be the current mbr
-  if (size() >= maxSize()) return 0; // false, new element added but overflow occured
+  refreshBoundaries(); // adjust the subtree's boundary points
+  //perimeter = calcPerimeter(); // calculate new perimeter refresh boundaries already does that
+  if (size() > maxSize()) return 0; // false, new element added but overflow occured
   else return 1; // true, new element added without overflow
 }
 
-int minimum_bounding_rectangle::remove(line_segment& line) {
-  if (empty()) return 0; // false, container is already empty
-  if (!isLeaf) return -1; // false, container does not contain line segments
-  auto iter{ std::find(containedSegments.begin(), containedSegments.end(), &line) };
-  if (iter == containedSegments.end()) { // container does not contain given line segment
-    if (contains(line)) return -3; // false, line segment is not contained in this mbr but it is within it's boundaries (fatal error)
-    else return -2; // false, line segment is not contained in this mbr and is not within it's boundaries
-  } else { // line segment found within the container;
-    containedSegments.erase(iter); // remove specified line segment from the container
-    if (empty()) { // if container is now empty resize mbr accordingly
-      upperLeft.update(0, 0);
-      upperRight.update(0, 0);
-      lowerLeft.update(0, 0);
-      lowerRight.update(0, 0);
-      perimeter = calcPerimeter(); // calculate new perimeter
-      // no point in adjasting boundaries here (after the return of 2 remove this mbr and then adjust boundaries)
-      return 2; // false, container is empty and needs to be deleted (unless it's the root)
-    } else {
-      adjustSubTreeBoundaries(); // adjust the subtree's boundary points
-      return 1; // true, container updated and mbr resized
-    }
+void minimum_bounding_rectangle::split(minimum_bounding_rectangle& u_split) {
+  if (isLeaf) {
+    std::cout << "SPLIT LEAF\n";
+    if (!u_split.isLeaf) u_split.clear(true); // if container has the wrong type, clean it and change it's type
+    else if(!u_split.empty()) u_split.clear(); // else if container has the correct type but it's not empty, clean it anyway
+    std::vector<line_segment*>::iterator iStart{ containedSegments.begin() + containedSegments.size() / 2 };
+    std::vector<line_segment*>::iterator iEnd{ containedSegments.end() };
+    for (auto iter = iStart; iter != iEnd; iter++) u_split.add(**iter);
+    containedSegments.erase(iStart, iEnd); // erase mbrs copied from u into u'
+    refreshBoundaries(); // refresh boundaries for u too (we erased some lines)
+  } else {
+    std::cout << "SPLIT INNER\n";
+    if (u_split.isLeaf) u_split.clear(true); // if container has the wrong type, clean it and change it's type
+    else if (!u_split.empty()) u_split.clear(); // else if container has the correct type but it's not empty, clean it anyway
+    std::vector<minimum_bounding_rectangle*>::iterator iStart{ containedRectangles.begin() + containedRectangles.size() / 2 };
+    std::vector<minimum_bounding_rectangle*>::iterator iEnd{ containedRectangles.end() };
+    for (auto iter = iStart; iter != iEnd; iter++) u_split.add(**iter); // split u into u and u' (copy the rest mbrs into u')
+    containedRectangles.erase(iStart, iEnd); // erase mbrs copied from u into u'
+    refreshBoundaries(); // refresh boundaries for u too (we erased some rectangles)
   }
-}
-
-int minimum_bounding_rectangle::remove(minimum_bounding_rectangle& rectangle) {
-  if (empty()) return 0; // false, container is already empty
-  if (isLeaf) return -1; // false, container does not contain rectangles
-  auto iter{ std::find(containedRectangles.begin(), containedRectangles.end(), &rectangle) };
-  if (iter == containedRectangles.end()) { // container does not contain given rectangle
-    if (contains(rectangle)) return -3; // false, rectangle is not contained in this mbr but it is within it's boundaries (fatal error)
-    else return -2; // false, rectangle is not contained in this mbr and is not within it's boundaries
-  } else { // rectangle found within the container;
-    containedRectangles.erase(iter); // remove specified rectangle from the container
-    if (empty()) { // if container is now empty resize mbr accordingly
-      upperLeft.update(0, 0);
-      upperRight.update(0, 0);
-      lowerLeft.update(0, 0);
-      lowerRight.update(0, 0);
-      perimeter = calcPerimeter(); // calculate new perimeter
-      // no point in adjasting boundaries here (after the return of 2 remove this mbr and then adjust boundaries)
-      return 2; // false, container is empty and needs to be deleted (unless it's the root)
-    } else {
-      adjustSubTreeBoundaries(); // adjust the subtree's boundary points
-      return 1; // true, container updated and mbr resized
-    }
-  }
+  return;
 }
 
 void minimum_bounding_rectangle::refreshBoundaries() {
+  std::cout << "MBR.REFRESH BOUNDARIES\n";
   if (isLeaf) {
     double topBound{ -369 };
     double bottomBound{ 369 };
@@ -190,9 +139,12 @@ void minimum_bounding_rectangle::refreshBoundaries() {
 }
 
 void minimum_bounding_rectangle::adjustSubTreeBoundaries() {
+  std::cout << "MBR.ADJUST BOUNDARIES (SUB TREE)\n";
   // refresh current mbr's boundaries, if it's not the root continue up until you find it
-  refreshBoundaries();
-  if(!isRoot) m_parent->adjustSubTreeBoundaries();
+  if (!isRoot) {
+    m_parent->refreshBoundaries();
+    m_parent->adjustSubTreeBoundaries();
+  }
   return;
 }
 
@@ -250,28 +202,6 @@ bool minimum_bounding_rectangle::intersects(minimum_bounding_rectangle& rectangl
   else return false;
 }
 
-minimum_bounding_rectangle& minimum_bounding_rectangle::split() {
-  if (isLeaf) {
-    std::vector<line_segment*>::iterator iStart{ containedSegments.begin() + containedSegments.size() / 2 };
-    std::vector<line_segment*>::iterator iEnd{ containedSegments.end() };
-    minimum_bounding_rectangle umbr{ **iStart++ }; // u' (needs to be initiallized with an mbr)
-    for (auto iter = iStart--; iter != iEnd; iter++) umbr.add(**iter); // split u into u and u' (copy the rest mbrs into u')
-    containedSegments.erase(iStart, iEnd); // erase mbrs copied from u into u'
-    // no need to adjust all boundaries up to the root since every add function call above does that regardless, we only need to adjust the current mbr's boundaries
-    refreshBoundaries();
-    return umbr;
-  } else {
-    std::vector<minimum_bounding_rectangle*>::iterator iStart{ containedRectangles.begin() + containedRectangles.size() / 2 };
-    std::vector<minimum_bounding_rectangle*>::iterator iEnd{ containedRectangles.end() };
-    minimum_bounding_rectangle umbr{ **iStart++ }; // u' (needs to be initiallized with an mbr
-    for (auto iter = iStart--; iter != iEnd; iter++) umbr.add(**iter); // split u into u and u' (copy the rest mbrs into u')
-    containedRectangles.erase(iStart, iEnd); // erase mbrs copied from u into u'
-    // no need to adjust all boundaries up to the root since every add function call above does that regardless, we only need to adjust the current mbr's boundaries
-    refreshBoundaries();
-    return umbr;
-  }
-}
-
 double minimum_bounding_rectangle::hypotheticalNewPerimeter(line_segment& line) {
   double lineTop{ line.upperEndPoint.y };
   double lineBottom{ line.lowerEndPoint.y };
@@ -304,44 +234,6 @@ double minimum_bounding_rectangle::hypotheticalNewPerimeter(line_segment& line) 
   }
   if (boundariesAreTheSame) return perimeter;
   else return newUpperLeft.distance(newUpperRight) + newUpperRight.distance(newLowerRight) + newLowerRight.distance(newLowerLeft) + newLowerLeft.distance(newUpperLeft);
-}
-
- // unused function
-int minimum_bounding_rectangle::positionRelativeTo(line_segment& line) {
-  int verticalPosition{ 0 }; // same horizontal space as mbr (possible intersection)
-  if (line.lowerEndPoint.y > upperLeft.y) verticalPosition = 1; // above the mbr
-  else if (line.upperEndPoint.y < lowerLeft.y) verticalPosition = -1; // below the mbr
-  int horizontalPosition{ 0 }; // same vertical space as mbr (possible intersection)
-  if (line.leftmostEndPoint.x > upperRight.x) horizontalPosition = 1; // right of mbr
-  else if (line.rightmostEndPoint.x < upperLeft.x) horizontalPosition = -1; // left of mbr
-  if (verticalPosition == 1 && horizontalPosition == -1) return 1; // top left
-  else if (verticalPosition == 1 && horizontalPosition == 0) return 2; // top middle
-  else if (verticalPosition == 1 && horizontalPosition == 1) return 3; // top right
-  else if (verticalPosition == 0 && horizontalPosition == -1) return 4; // mid left
-  else if (verticalPosition == 0 && horizontalPosition == 0) return 5; // center (use center & middle points to calculate distance)
-  else if (verticalPosition == 0 && horizontalPosition == 1) return 6; // mid right
-  else if (verticalPosition == -1 && horizontalPosition == -1) return 7; // bottom left
-  else if (verticalPosition == -1 && horizontalPosition == 0) return 8; // bottom middle
-  else if (verticalPosition == -1 && horizontalPosition == 1) return 9; // bottom right
-}
-
- // unused function
-int minimum_bounding_rectangle::positionRelativeTo(minimum_bounding_rectangle& rectangle) {
-  int verticalPosition{ 0 }; // same horizontal space as mbr (possible intersection)
-  if (rectangle.lowerLeft.y > upperLeft.y) verticalPosition = 1; // above the mbr
-  else if (rectangle.upperLeft.y < lowerLeft.y) verticalPosition = -1; // below the mbr
-  int horizontalPosition{ 0 }; // same vertical space as mbr (possible intersection)
-  if (rectangle.upperLeft.x > upperRight.x) horizontalPosition = 1; // right of mbr
-  else if (rectangle.upperRight.x < upperLeft.x) horizontalPosition = -1; // left of mbr
-  if (verticalPosition == 1 && horizontalPosition == -1) return 1; // top left
-  else if (verticalPosition == 1 && horizontalPosition == 0) return 2; // top middle
-  else if (verticalPosition == 1 && horizontalPosition == 1) return 3; // top right
-  else if (verticalPosition == 0 && horizontalPosition == -1) return 4; // mid left
-  else if (verticalPosition == 0 && horizontalPosition == 0) return 5; // center (use center points to calculate distance)
-  else if (verticalPosition == 0 && horizontalPosition == 1) return 6; // mid right
-  else if (verticalPosition == -1 && horizontalPosition == -1) return 7; // bottom left
-  else if (verticalPosition == -1 && horizontalPosition == 0) return 8; // bottom middle
-  else if (verticalPosition == -1 && horizontalPosition == 1) return 9; // bottom right
 }
 
 unsigned int minimum_bounding_rectangle::size() {
@@ -385,8 +277,8 @@ void minimum_bounding_rectangle::makeRegularNode(minimum_bounding_rectangle* par
   return;
 }
 
-minimum_bounding_rectangle& minimum_bounding_rectangle::parent() {
-  return *m_parent;
+minimum_bounding_rectangle* minimum_bounding_rectangle::parent() {
+  return m_parent;
 }
 
 void minimum_bounding_rectangle::resetID() {
@@ -398,15 +290,114 @@ double minimum_bounding_rectangle::calcPerimeter() {
   return upperLeft.distance(upperRight) + upperRight.distance(lowerRight) + lowerRight.distance(lowerLeft) + lowerLeft.distance(upperLeft);
 }
 
-void minimum_bounding_rectangle::print() {
-  std::string type1{ "inner " };
-  std::string type2{ "inner " };
-  if (isLeaf) type1 = "leaf ";
-  if (isRoot) type2 = "root ";
-  std::cout << type1 << type2 << "node[" << nodeID << "]:\n";
-  upperLeft.print();
-  upperRight.print();
-  lowerLeft.print();
-  lowerRight.print();
+void minimum_bounding_rectangle::print(int tabs) {
+  if (isRoot) std::cout << "ROOT ";
+  if (isLeaf) {
+    for (int i = 0; i < tabs; i++) std::cout << "  ";
+    std::cout << "leaf node[" << nodeID << "]:\n";
+    tabs++;
+    for (line_segment* lineSeg : containedSegments) {
+      for (int i = 0; i < tabs; i++) std::cout << "  ";
+      std::cout << lineSeg->name << " ";
+    }
+    std::cout << '\n';
+  } else {
+    for (int i = 0; i < tabs; i++) std::cout << "  ";
+    std::cout << "inner node[" << nodeID << "]:\n";
+    for (minimum_bounding_rectangle* rect : containedRectangles) {
+      for (int i = 0; i < tabs; i++) std::cout << "  ";
+      rect->print(++tabs);
+    }
+    std::cout << '\n';
+  }
+
   return;
+}
+
+// unused function
+int minimum_bounding_rectangle::remove(line_segment& line) {
+  if (empty()) return 0; // false, container is already empty
+  if (!isLeaf) return -1; // false, container does not contain line segments
+  auto iter{ std::find(containedSegments.begin(), containedSegments.end(), &line) };
+  if (iter == containedSegments.end()) { // container does not contain given line segment
+    if (contains(line)) return -3; // false, line segment is not contained in this mbr but it is within it's boundaries (fatal error)
+    else return -2; // false, line segment is not contained in this mbr and is not within it's boundaries
+  } else { // line segment found within the container;
+    containedSegments.erase(iter); // remove specified line segment from the container
+    if (empty()) { // if container is now empty resize mbr accordingly
+      upperLeft.update(0, 0);
+      upperRight.update(0, 0);
+      lowerLeft.update(0, 0);
+      lowerRight.update(0, 0);
+      perimeter = calcPerimeter(); // calculate new perimeter
+      // no point in adjasting boundaries here (after the return of 2 remove this mbr and then adjust boundaries)
+      return 2; // false, container is empty and needs to be deleted (unless it's the root)
+    } else {
+      adjustSubTreeBoundaries(); // adjust the subtree's boundary points
+      return 1; // true, container updated and mbr resized
+    }
+  }
+}
+
+// unused function
+int minimum_bounding_rectangle::remove(minimum_bounding_rectangle& rectangle) {
+  if (empty()) return 0; // false, container is already empty
+  if (isLeaf) return -1; // false, container does not contain rectangles
+  auto iter{ std::find(containedRectangles.begin(), containedRectangles.end(), &rectangle) };
+  if (iter == containedRectangles.end()) { // container does not contain given rectangle
+    if (contains(rectangle)) return -3; // false, rectangle is not contained in this mbr but it is within it's boundaries (fatal error)
+    else return -2; // false, rectangle is not contained in this mbr and is not within it's boundaries
+  } else { // rectangle found within the container;
+    containedRectangles.erase(iter); // remove specified rectangle from the container
+    if (empty()) { // if container is now empty resize mbr accordingly
+      upperLeft.update(0, 0);
+      upperRight.update(0, 0);
+      lowerLeft.update(0, 0);
+      lowerRight.update(0, 0);
+      perimeter = calcPerimeter(); // calculate new perimeter
+      // no point in adjasting boundaries here (after the return of 2 remove this mbr and then adjust boundaries)
+      return 2; // false, container is empty and needs to be deleted (unless it's the root)
+    } else {
+      adjustSubTreeBoundaries(); // adjust the subtree's boundary points
+      return 1; // true, container updated and mbr resized
+    }
+  }
+}
+
+// unused function
+int minimum_bounding_rectangle::positionRelativeTo(line_segment& line) {
+  int verticalPosition{ 0 }; // same horizontal space as mbr (possible intersection)
+  if (line.lowerEndPoint.y > upperLeft.y) verticalPosition = 1; // above the mbr
+  else if (line.upperEndPoint.y < lowerLeft.y) verticalPosition = -1; // below the mbr
+  int horizontalPosition{ 0 }; // same vertical space as mbr (possible intersection)
+  if (line.leftmostEndPoint.x > upperRight.x) horizontalPosition = 1; // right of mbr
+  else if (line.rightmostEndPoint.x < upperLeft.x) horizontalPosition = -1; // left of mbr
+  if (verticalPosition == 1 && horizontalPosition == -1) return 1; // top left
+  else if (verticalPosition == 1 && horizontalPosition == 0) return 2; // top middle
+  else if (verticalPosition == 1 && horizontalPosition == 1) return 3; // top right
+  else if (verticalPosition == 0 && horizontalPosition == -1) return 4; // mid left
+  else if (verticalPosition == 0 && horizontalPosition == 0) return 5; // center (use center & middle points to calculate distance)
+  else if (verticalPosition == 0 && horizontalPosition == 1) return 6; // mid right
+  else if (verticalPosition == -1 && horizontalPosition == -1) return 7; // bottom left
+  else if (verticalPosition == -1 && horizontalPosition == 0) return 8; // bottom middle
+  else if (verticalPosition == -1 && horizontalPosition == 1) return 9; // bottom right
+}
+
+// unused function
+int minimum_bounding_rectangle::positionRelativeTo(minimum_bounding_rectangle& rectangle) {
+  int verticalPosition{ 0 }; // same horizontal space as mbr (possible intersection)
+  if (rectangle.lowerLeft.y > upperLeft.y) verticalPosition = 1; // above the mbr
+  else if (rectangle.upperLeft.y < lowerLeft.y) verticalPosition = -1; // below the mbr
+  int horizontalPosition{ 0 }; // same vertical space as mbr (possible intersection)
+  if (rectangle.upperLeft.x > upperRight.x) horizontalPosition = 1; // right of mbr
+  else if (rectangle.upperRight.x < upperLeft.x) horizontalPosition = -1; // left of mbr
+  if (verticalPosition == 1 && horizontalPosition == -1) return 1; // top left
+  else if (verticalPosition == 1 && horizontalPosition == 0) return 2; // top middle
+  else if (verticalPosition == 1 && horizontalPosition == 1) return 3; // top right
+  else if (verticalPosition == 0 && horizontalPosition == -1) return 4; // mid left
+  else if (verticalPosition == 0 && horizontalPosition == 0) return 5; // center (use center points to calculate distance)
+  else if (verticalPosition == 0 && horizontalPosition == 1) return 6; // mid right
+  else if (verticalPosition == -1 && horizontalPosition == -1) return 7; // bottom left
+  else if (verticalPosition == -1 && horizontalPosition == 0) return 8; // bottom middle
+  else if (verticalPosition == -1 && horizontalPosition == 1) return 9; // bottom right
 }

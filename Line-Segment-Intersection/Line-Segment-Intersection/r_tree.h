@@ -4,6 +4,7 @@
 // STL : Standard Template Library
 #include <vector>
 #include <utility>
+#include <memory>
 // Boost Library
 // SFML : Simple and Fast Multimedia Library
 // Custom Headers
@@ -21,9 +22,9 @@ public:
 public:
 	unsigned int size();
 	void insert(minimum_bounding_rectangle& u, line_segment& line);
-	minimum_bounding_rectangle& choose_subtree(minimum_bounding_rectangle& u, line_segment& line);
+	minimum_bounding_rectangle* choose_subtree(minimum_bounding_rectangle& u, line_segment& line);
 	void handle_overflow(minimum_bounding_rectangle& u);
-	minimum_bounding_rectangle& root();
+	minimum_bounding_rectangle* root();
 	void clear();
 	void print();
 

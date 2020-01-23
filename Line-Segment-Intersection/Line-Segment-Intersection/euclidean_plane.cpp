@@ -671,11 +671,29 @@ void euclidean_plane::update() {
      *  (2): status structure feature test
      *  (3): sweep line feature test (setup)
      */
-#define TEST_OPTION 6
+#define TEST_OPTION 69
     /* _____________________________|___________________________________________________________________________________________________ *|
     |* # ### Write Code Below ### # | |~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|  *|
     |* _____________________________|___________________________________________________________________________________________________ */
-#if TEST_OPTION == 1 // EVENT QUEUE FEATURE TEST (V)
+#if TEST_OPTION == 0 // OTHER
+    std::vector<std::shared_ptr<minimum_bounding_rectangle>> kappa{};
+    {
+      kappa.push_back(std::shared_ptr<minimum_bounding_rectangle>{ new minimum_bounding_rectangle{m_physicalLineA} });
+      std::shared_ptr<minimum_bounding_rectangle> a{ new minimum_bounding_rectangle{m_physicalLineA} };
+      kappa.push_back(a);
+      std::shared_ptr<minimum_bounding_rectangle> b{ new minimum_bounding_rectangle{m_physicalLineA} };
+      kappa.push_back(b);
+      std::shared_ptr<minimum_bounding_rectangle> c{ new minimum_bounding_rectangle{m_physicalLineA} };
+      kappa.push_back(c);
+      std::shared_ptr<minimum_bounding_rectangle> d{ new minimum_bounding_rectangle{m_physicalLineA} };
+      kappa.push_back(d);
+      std::shared_ptr<minimum_bounding_rectangle> e{ new minimum_bounding_rectangle{m_physicalLineA} };
+      kappa.push_back(e);
+      kappa.clear();
+      //delete a;
+    }
+    std::cout << "kappa\n";
+#elif TEST_OPTION == 1 // EVENT QUEUE FEATURE TEST (V)
     event_queue Q{};
     line_segment lineSet{ 69, -69, 96, -96 };
     std::vector<line_segment> qSet{ lineSet };
@@ -841,29 +859,19 @@ void euclidean_plane::update() {
     for (int i : A) std::cout << i << ' ';
     std::cout << "\nB: ";
     for (int i : B) std::cout << i << ' ';
-#elif TEST_OPTION == 6 // OTHER
-    if (debuggingCounter == 0) {
-      m_physicalMultiPairSet[0].print();
-      m_physicalRTree.insert(m_physicalRTree.root(), m_physicalMultiPairSet[0]);
+#elif TEST_OPTION == 6 // R-TREE FEATURE TEST
+    if (debuggingCounter < m_physicalMultiPairSet.size()) {
+      m_physicalRTree.insert(*m_physicalRTree.root(), m_physicalMultiPairSet[debuggingCounter]);
       updateLogicalRTree();
       m_physicalRTree.print();
-    } else if (debuggingCounter == 1) {
-      m_physicalMultiPairSet[1].print();
-      m_physicalRTree.insert(m_physicalRTree.root(), m_physicalMultiPairSet[1]);
-      updateLogicalRTree();
-      m_physicalRTree.print();
-    } else if (debuggingCounter == 2) {
-      m_physicalMultiPairSet[2].print();
-      m_physicalRTree.insert(m_physicalRTree.root(), m_physicalMultiPairSet[2]);
-      updateLogicalRTree();
-      m_physicalRTree.print();
-    } else if (debuggingCounter == 3) {
-    } else if (debuggingCounter == 4) {
-    } else if (debuggingCounter == 5) {
-    } else if (debuggingCounter == 6) {
-    } else if (debuggingCounter == 7) {
     }
-    std::cout << "\ndebugging step: " << debuggingCounter++ << '\n';
+    std::cout << "\ndebugging step: " << ++debuggingCounter << '\n';
+#elif TEST_OPTION == 7 // OTHER
+    line_segment a{ 1, 1, 2, 2 };
+    minimum_bounding_rectangle mbr0{ a };
+    minimum_bounding_rectangle mbr1{ mbr0 };
+    std::cout << "1 "; mbr0.print();
+    std::cout << "2 "; mbr1.print();
 #endif
     /* _____________________________|___________________________________________________________________________________________________ *|
     |* # ### Write Code Above ### # | |~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|  *|
@@ -987,7 +995,7 @@ void euclidean_plane::render() {
      *  (2): status structure feature test
      *  (3): sweep line feature test (setup)
      */
-#define RENDERER_TEST_OPTION 0
+#define RENDERER_TEST_OPTION 69
     /* _____________________________|___________________________________________________________________________________________________ *|
     |* # ### Write Code Below ### # | |~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|~|  *|
     |* _____________________________|___________________________________________________________________________________________________ */

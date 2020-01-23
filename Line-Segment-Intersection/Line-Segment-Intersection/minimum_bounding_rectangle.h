@@ -31,7 +31,7 @@ public:
 	bool contains(minimum_bounding_rectangle& rectangle); // returns true iff mbr contains the whole rectangle
 	bool intersects(line_segment& line); // returns true iff mbr intersects any part of the line segment
 	bool intersects(minimum_bounding_rectangle& rectangle); // returns true iff mbr intersects any part of the rectangle
-	minimum_bounding_rectangle& split(); // splits u into u and u'
+	void split(minimum_bounding_rectangle& u_split); // splits u into u and u'
 	double hypotheticalNewPerimeter(line_segment& line); // calculates the new perimeter if given line segment was added to this mbr's sub-tree
 	double hypotheticalNewPerimeter(minimum_bounding_rectangle& rectangle);
 	int positionRelativeTo(line_segment& line); // returns [1-9] depending on the relative position of the line to the mbr
@@ -43,11 +43,10 @@ public:
 	void clear(bool isLeaf = false); // clears the corresponding container (vector) and if bool is true it toggles the contained type
 	void makeRoot(); // makes this mbr the root of the R-tree it belongs to
 	void makeRegularNode(minimum_bounding_rectangle* parent); // makes this mbr a regular node of the R-tree
-	minimum_bounding_rectangle& parent(); // returns the parent of mbr
+	minimum_bounding_rectangle* parent(); // returns the parent of mbr
 	void resetID(); // resets the unique IDs assigned to mbrs
 	double calcPerimeter(); // calculates the perimeter of the mbr with the current boundary points
-	void print();
-private:
+	void print(int tabs = 0);
 	void refreshBoundaries(); // re-calculates boundary points and perimeter (used when a child node has added a new line or rectangle)
 	void adjustSubTreeBoundaries(); // re-calculates boundary points of of all nodes this mbr belongs to, up until the root
 

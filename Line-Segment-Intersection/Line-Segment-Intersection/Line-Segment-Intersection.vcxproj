@@ -155,6 +155,7 @@
     <ClInclude Include="sweep_line.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="saves\multiple-pair-line-segment-set-0.dat" />
     <None Include="saves\multiple-pair-line-segment-set-1.dat" />
     <None Include="saves\multiple-pair-line-segment-set-2.dat" />
     <None Include="saves\multiple-pair-line-segment-set-3.dat" />

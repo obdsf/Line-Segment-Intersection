@@ -106,5 +106,8 @@
     <None Include="saves\multiple-pair-line-segment-set-9.dat">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="saves\multiple-pair-line-segment-set-0.dat">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
